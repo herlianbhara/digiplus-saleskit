@@ -15,22 +15,32 @@ try:
     # 2. Area Pencarian Kasir / SA
     st.subheader("🔍 Skenario Pelanggan")
     
-    # BIKIN PILIHAN DROPDOWN JADI UNIQUE (TIDAK DOBEL)
+    # FITUR BARU: Kolom Ketik Khusus HP (Memaksa keyboard muncul)
+    kata_kunci = st.text_input("Ketik Merk/Tipe HP yang dicari customer:", placeholder="Misal: Poco X8")
+    
+    # Ambil daftar unik dari Excel
     pilihan_unik = df["Lawan_Dicari"].unique().tolist()
     
+    # Mesin Penyaring Otomatis berdasarkan ketikan
+    if kata_kunci:
+        pilihan_tersaring = [hp for hp in pilihan_unik if kata_kunci.lower() in str(hp).lower()]
+    else:
+        pilihan_tersaring = pilihan_unik
+        
+    # Dropdown yang datanya sudah disaring oleh kolom ketik di atas
     pilihan_customer = st.selectbox(
-        "Customer menanyakan HP apa? (Yang sedang kosong / ingin dihindari)", 
-        ["-- Apa barang yang kosong? --"] + pilihan_unik
+        "👇 Pilih Hasil Pencarian:", 
+        ["-- Apa barang yang kosong? --"] + pilihan_tersaring
     )
 
     # 3. Logika Menampilkan MULTIPLE Senjata Rahasia
     if pilihan_customer != "-- Apa barang yang kosong? --":
-        # Tarik SEMUA data yang sesuai dengan pilihan (bisa lebih dari 1)
+        # Tarik SEMUA data yang sesuai dengan pilihan
         hasil_semua = df[df["Lawan_Dicari"] == pilihan_customer]
         
         st.success(f"🔥 Ditemukan **{len(hasil_semua)} Opsi Switch Selling** untuk menggantikan {pilihan_customer}!")
         
-        # Kita pakai TABS supaya tampilannya rapi dan interaktif
+        # Pakai TABS supaya tampilannya rapi dan interaktif
         nama_target = hasil_semua["Target_Jualan"].tolist()
         tabs = st.tabs(nama_target)
         
