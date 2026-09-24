@@ -3,11 +3,20 @@ import pandas as pd
 
 # Konfigurasi Halaman
 st.set_page_config(page_title="Digiplus Smart Sales Assistant", layout="wide")
+
+# --- SUNTIKAN CSS GLASSMORPHISM (APPLE/iOS STYLE) ---
+st.markdown(
+    """
+    
+    """,
+    unsafe_allow_html=True
+)
+
 st.title("⚔️ Digiplus Smart Sales Assistant")
 st.markdown("**Produk kosong? Jangan Khawatir Kita Masih Bisa Jual Yang Lain!**")
 st.markdown("---")
 
-# 1. Tarik Data dari Excel Otomatis!
+# 1. Tarik Data dari Excel Otomatis
 try:
     # Membaca file Excel
     df = pd.read_excel("data_spek.xlsx")
@@ -15,26 +24,19 @@ try:
     # 2. Area Pencarian Kasir / SA
     st.subheader("🔍 Skenario Pelanggan")
     
-    # FITUR BARU: Kolom Ketik Khusus HP (Memaksa keyboard muncul)
-    kata_kunci = st.text_input("Ketik Merk/Tipe HP yang dicari customer:", placeholder="Misal: Poco X8")
-    
     # Ambil daftar unik dari Excel
     pilihan_unik = df["Lawan_Dicari"].unique().tolist()
     
-    # Mesin Penyaring Otomatis berdasarkan ketikan
-    if kata_kunci:
-        pilihan_tersaring = [hp for hp in pilihan_unik if kata_kunci.lower() in str(hp).lower()]
-    else:
-        pilihan_tersaring = pilihan_unik
-        
-    # Dropdown yang datanya sudah disaring oleh kolom ketik di atas
+    # Kolom Pencarian Tunggal
     pilihan_customer = st.selectbox(
-        "👇 Pilih Hasil Pencarian:", 
-        ["-- Apa barang yang kosong? --"] + pilihan_tersaring
+        "Ketik Merk/Tipe HP yang dicari customer:", 
+        options=pilihan_unik,
+        index=None,
+        placeholder="🔍 Cari HP... (Misal: Poco X8)"
     )
 
     # 3. Logika Menampilkan MULTIPLE Senjata Rahasia
-    if pilihan_customer != "-- Apa barang yang kosong? --":
+    if pilihan_customer:
         # Tarik SEMUA data yang sesuai dengan pilihan
         hasil_semua = df[df["Lawan_Dicari"] == pilihan_customer]
         
