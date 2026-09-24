@@ -1,58 +1,87 @@
 import streamlit as st
 import pandas as pd
 
-# Konfigurasi Halaman
+# 1. Konfigurasi Halaman & Memaksa Tema Gelap (Dark Mode Override)
 st.set_page_config(page_title="Digiplus Smart Sales Assistant", layout="wide")
+
+# CSS untuk memaksa warna gelap (mengabaikan pengaturan perangkat pengguna)
+st.markdown("""
+<style>
+/* Memaksa background seluruh aplikasi menjadi abu-abu sangat gelap (Dark Mode Apple) */
+.stApp {
+    background-color: #0E1117 !important; 
+    color: #FAFAFA !important;
+}
+
+/* Memastikan semua teks dasar berwarna putih keabuan */
+h1, h2, h3, h4, h5, h6, p, span, div, label {
+    color: #FAFAFA !important;
+}
+
+/* Styling kolom input agar menyatu dengan dark mode */
+.stTextInput > div > div > input {
+    color: white !important;
+    background-color: #262730 !important;
+    border: 1px solid #4B4B4B !important;
+}
+
+/* Memperbaiki warna teks peringatan agar kontras */
+[data-testid="stAlert"] {
+    background-color: #262730 !important;
+    border: 1px solid #4B4B4B !important;
+    color: white !important;
+}
+
+/* Menyembunyikan menu bawaan streamlit di pojok kanan atas (opsional tapi bikin rapi) */
+#MainMenu {visibility: hidden;}
+header {visibility: hidden;}
+</style>
+""", unsafe_allow_html=True)
+
+
 st.title("⚔️ Digiplus Smart Sales Assistant")
 st.markdown("**Produk kosong? Jangan Khawatir Kita Masih Bisa Jual Yang Lain!**")
 st.markdown("---")
 
 # Tarik Data dari Excel Otomatis
 try:
-    # Membaca file Excel
     df = pd.read_excel("data_spek.xlsx")
     
-    st.subheader("🔍 Skenario Pelanggan")
+    st.subheader("🔍 Spotlight Search")
     
-    # Ambil daftar unik dari Excel
-    pilihan_unik = df["Lawan_Dicari"].unique().tolist()
-    
-    # KEMBALI KE TAMPILAN AWAL: 1 Dropdown yang bersih dan elegan
-    pilihan_customer = st.selectbox(
-        "Ketik Merk/Tipe HP yang dicari customer:", 
-        options=pilihan_unik,
-        index=None,
-        placeholder="🔍 Cari HP... (Misal: Poco X8)"
+    # KUNCI UTAMA KEYBOARD HP: Menggunakan st.text_input MURNI. 
+    # Sekali sentuh di HP, keyboard langsung keluar!
+    kata_kunci = st.text_input(
+        "Ketik Merk/Tipe HP (Contoh: Poco X8, S25, dll):", 
+        placeholder="Ketik nama HP di sini lalu tekan Enter..."
     )
 
-    # Logika Menampilkan MULTIPLE Senjata Rahasia
-    if pilihan_customer:
-        # Tarik SEMUA data yang sesuai dengan pilihan
-        hasil_semua = df[df["Lawan_Dicari"] == pilihan_customer]
+    # Logika Pencarian Pintar (Tidak sensitif huruf besar/kecil)
+    if kata_kunci:
+        # Mencari baris di Excel yang kolom 'Lawan_Dicari' nya mengandung kata kunci
+        hasil_semua = df[df["Lawan_Dicari"].str.contains(kata_kunci, case=False, na=False)]
         
-        st.success(f"🔥 Ditemukan **{len(hasil_semua)} Opsi Switch Selling** untuk menggantikan {pilihan_customer}!")
-        
-        # Pakai TABS supaya tampilannya rapi dan interaktif
-        nama_target = hasil_semua["Target_Jualan"].tolist()
-        tabs = st.tabs(nama_target)
-        
-        # Looping untuk mengisi masing-masing tab dengan datanya
-        for index, tab in enumerate(tabs):
-            with tab:
-                baris_data = hasil_semua.iloc[index]
+        if not hasil_semua.empty:
+            st.success(f"🔥 Ditemukan **{len(hasil_semua)} Rekomendasi** dari database!")
+            
+            # Looping untuk memunculkan semua hasil yang cocok ke bawah (sederhana & rapi)
+            for index, baris in hasil_semua.iterrows():
+                st.markdown(f"### 🎯 Alternatif: {baris['Target_Jualan']} (Pengganti {baris['Lawan_Dicari']})")
                 
-                st.markdown(f"### 🎯 Opsi ke-{index+1}: Beralih ke {baris_data['Target_Jualan']}")
-                
-                # Bagi layar jadi 2 kolom di dalam tab
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    st.info(f"📊 Spek Kunci {baris_data['Target_Jualan']}")
-                    st.text(baris_data['Spek_Kunci'])
+                    st.info(f"📊 Spek Kunci {baris['Target_Jualan']}")
+                    st.text(baris['Spek_Kunci'])
                     
                 with col2:
                     st.warning("💬 Angle Jualan 'Rahasia Dapur'")
-                    st.write(f"*{baris_data['Script_Sales']}*")
+                    st.write(f"*{baris['Script_Sales']}*")
+                
+                st.markdown("---") # Garis pembatas antar hasil
+                
+        else:
+            st.error(f"❌ HP '{kata_kunci}' tidak ditemukan di database. Coba ketik mereknya saja.")
             
 except FileNotFoundError:
     st.error("⚠️ File 'data_spek.xlsx' tidak ditemukan! Pastikan file Excel sudah di-save di folder yang sama.")
