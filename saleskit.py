@@ -116,23 +116,25 @@ def generate_ide_probing(data_kosong, data_alternatif):
 st.subheader("🔍 HP apa yang sedang kosong?")
 st.markdown("*Biar aku bantu cariin penggantinya lengkap dengan cara jualan ☺️*")
 
-pilihan_unik = df["Nama_Lengkap"].unique().tolist()
+# ✨ Urutin alfabetis biar rapi dan gampang dicari
+pilihan_unik = sorted(df["Nama_Lengkap"].unique().tolist())
 
 # ✨ Fungsi search untuk st_searchbox
 def search_hp(searchterm: str):
     if not searchterm:
-        return pilihan_unik[:20]  # Tampilkan 20 pertama kalau kosong
+        return pilihan_unik  # Tampilkan SEMUA pilihan saat kosong
     return [
         hp for hp in pilihan_unik 
         if searchterm.lower() in hp.lower()
-    ][:20]  # Maksimal 20 saran
+    ]  # Tanpa batasan jumlah
 
-# ✨ Search box dengan keyboard + autocomplete dropdown
+# ✨ Search box dengan keyboard + autocomplete + SEMUA pilihan tampil saat diklik
 pilihan_customer = st_searchbox(
     search_hp,
     label="🔎 Cari HP yang sedang kosong:",
-    placeholder="Ketik nama HP... (contoh: Galaxy S25, iPhone 17)",
-    key="search_hp"
+    placeholder="Ketik atau pilih nama HP...",
+    key="search_hp",
+    default_options=pilihan_unik  # ✨ KUNCI: tampilkan semua pilihan saat kolom di-tap
 )
 
 # Slider untuk atur toleransi harga
@@ -193,4 +195,4 @@ if pilihan_customer:
                     st.write(f"*{ide_probing}*")
 
 else:
-    st.info("👆 Ketik nama HP di kolom pencarian untuk mulai.")
+    st.info("👆 Ketik atau pilih nama HP di kolom pencarian untuk mulai.")
