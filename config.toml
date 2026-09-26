@@ -1,7 +1,0 @@
-[theme]
-base = "dark"
-primaryColor = "#E31E24"        # Merah khas Digiplus/MAP
-backgroundColor = "#0A0E1A"     # Biru gelap elegan
-secondaryBackgroundColor = "#1A1F2E"
-textColor = "#FFFFFF"
-font = "sans serif"
