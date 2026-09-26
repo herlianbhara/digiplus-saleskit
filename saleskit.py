@@ -22,9 +22,25 @@ except FileNotFoundError:
     st.stop()
 
 # ============================================
-# ✨ Gabungin Brand + Model jadi Nama_Lengkap
+# ✨ Gabungin Brand + Model dengan cek anti-duplikat
 # ============================================
-df["Nama_Lengkap"] = df["Brand"].astype(str) + " " + df["Model"].astype(str)
+def gabung_nama(row):
+    """
+    Gabungkan Brand + Model, tapi cek dulu biar nggak dobel.
+    Contoh:
+    - Brand="Samsung", Model="Galaxy A57" → "Samsung Galaxy A57"
+    - Brand="Samsung", Model="Samsung Galaxy A57" → "Samsung Galaxy A57" (nggak dobel)
+    """
+    brand = str(row["Brand"]).strip()
+    model = str(row["Model"]).strip()
+    
+    # Kalau model udah diawali brand (case-insensitive), pakai model aja
+    if model.lower().startswith(brand.lower()):
+        return model
+    else:
+        return f"{brand} {model}"
+
+df["Nama_Lengkap"] = df.apply(gabung_nama, axis=1)
 
 # ============================================
 # 2. LOGIC PENCARIAN ALTERNATIF
