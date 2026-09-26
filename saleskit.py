@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from difflib import SequenceMatcher
+from streamlit_searchbox import st_searchbox
 
 st.set_page_config(page_title="Digiplus Smart Sales Assistant", layout="wide")
 
@@ -118,11 +118,21 @@ st.markdown("*Biar aku bantu cariin penggantinya lengkap dengan cara jualan ☺�
 
 pilihan_unik = df["Nama_Lengkap"].unique().tolist()
 
-pilihan_customer = st.selectbox(
-    "Pilih HP yang sedang kosong:", 
-    options=pilihan_unik,
-    index=None,
-    placeholder="Pilih HP yang sedang kosong..."
+# ✨ Fungsi search untuk st_searchbox
+def search_hp(searchterm: str):
+    if not searchterm:
+        return pilihan_unik[:20]  # Tampilkan 20 pertama kalau kosong
+    return [
+        hp for hp in pilihan_unik 
+        if searchterm.lower() in hp.lower()
+    ][:20]  # Maksimal 20 saran
+
+# ✨ Search box dengan keyboard + autocomplete dropdown
+pilihan_customer = st_searchbox(
+    search_hp,
+    label="🔎 Cari HP yang sedang kosong:",
+    placeholder="Ketik nama HP... (contoh: Galaxy S25, iPhone 17)",
+    key="search_hp"
 )
 
 # Slider untuk atur toleransi harga
@@ -183,4 +193,4 @@ if pilihan_customer:
                     st.write(f"*{ide_probing}*")
 
 else:
-    st.info("👆 Pilih HP yang kosong di atas untuk mulai.")
+    st.info("👆 Ketik nama HP di kolom pencarian untuk mulai.")
