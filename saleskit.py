@@ -37,17 +37,17 @@ st.markdown("---")
 try:
     df = pd.read_excel("data_spek.xlsx")
     
-    st.subheader("🔍 Spotlight Search (Hover Mode)")
+    # PERUBAHAN COPYWRITING SESUAI IDE BRILIANMU
+    st.subheader("🔍 HP apa yang sedang kosong?")
+    st.markdown("*biar aku bantu cariin penggantinya lengkap dengan cara jualan ☺️*")
     
-    # KUNCI HOVER: Menggunakan selectbox. 
-    # Di HP wajib ketuk kotaknya, lalu ketuk area pencarian di popup-nya.
     pilihan_unik = df["Lawan_Dicari"].unique().tolist()
     
     pilihan_customer = st.selectbox(
-        "Ketik / Pilih Merk HP (Hover otomatis):", 
+        "Pilih HP yang sedang kosong:", 
         options=pilihan_unik,
         index=None,
-        placeholder="Cari HP... (Misal: Poco X8)"
+        placeholder="Pilih HP yang sedang kosong..."
     )
 
     # Menampilkan Hasil secara langsung setelah dipilih dari Hover
