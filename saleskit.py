@@ -9,9 +9,9 @@ st.markdown("**Produk kosong? Jangan Khawatir Kita Masih Bisa Jual Yang Lain!**"
 st.markdown("---")
 
 # ============================================
-# 1. LOAD DATA
+# 1. LOAD DATA - dengan auto-refresh
 # ============================================
-@st.cache_data
+@st.cache_data(ttl=60)  # ✨ Cache auto-expired tiap 60 detik
 def load_data():
     return pd.read_excel("data_hp.xlsx")
 
@@ -27,14 +27,10 @@ except FileNotFoundError:
 def gabung_nama(row):
     """
     Gabungkan Brand + Model, tapi cek dulu biar nggak dobel.
-    Contoh:
-    - Brand="Samsung", Model="Galaxy A57" → "Samsung Galaxy A57"
-    - Brand="Samsung", Model="Samsung Galaxy A57" → "Samsung Galaxy A57" (nggak dobel)
     """
     brand = str(row["Brand"]).strip()
     model = str(row["Model"]).strip()
     
-    # Kalau model udah diawali brand (case-insensitive), pakai model aja
     if model.lower().startswith(brand.lower()):
         return model
     else:
@@ -46,11 +42,6 @@ df["Nama_Lengkap"] = df.apply(gabung_nama, axis=1)
 # 2. LOGIC PENCARIAN ALTERNATIF
 # ============================================
 def cari_alternatif(hp_kosong, df, max_selisih_harga=2500000, top_n=5):
-    """
-    Cari HP alternatif berdasarkan:
-    - Selisih harga maksimal
-    - Skor kemiripan (harga + tier)
-    """
     data_kosong = df[df["Nama_Lengkap"] == hp_kosong].iloc[0]
     harga_acuan = data_kosong["Harga"]
     tier_acuan = data_kosong["Tier"]
@@ -59,7 +50,6 @@ def cari_alternatif(hp_kosong, df, max_selisih_harga=2500000, top_n=5):
     kandidat["Selisih_Harga"] = abs(kandidat["Harga"] - harga_acuan)
     kandidat = kandidat[kandidat["Selisih_Harga"] <= max_selisih_harga]
     
-    # Hitung skor kecocokan
     def hitung_skor(row):
         skor = 0
         skor += max(0, 60 - (row["Selisih_Harga"] / max_selisih_harga * 60))
@@ -80,21 +70,16 @@ def cari_alternatif(hp_kosong, df, max_selisih_harga=2500000, top_n=5):
 # 3. LOGIC GENERATE IDE PROBING
 # ============================================
 def generate_ide_probing(data_kosong, data_alternatif):
-    """
-    Generate ide probing + kalimat penawaran berdasarkan perbandingan
-    """
     nama_kosong = data_kosong["Nama_Lengkap"]
     nama_alt = data_alternatif["Nama_Lengkap"]
     brand_alt = data_alternatif["Brand"]
     
-    # Kumpulkan kelebihan
     kelebihan = []
     for i in range(1, 4):
         kolom = f"Kelebihan_{i}"
         if kolom in data_alternatif and pd.notna(data_alternatif[kolom]):
             kelebihan.append(data_alternatif[kolom])
     
-    # Format kelebihan jadi kalimat
     if len(kelebihan) >= 2:
         kelebihan_teks = f"{kelebihan[0]} dan {kelebihan[1]}"
     elif len(kelebihan) == 1:
@@ -102,7 +87,6 @@ def generate_ide_probing(data_kosong, data_alternatif):
     else:
         kelebihan_teks = "spesifikasi yang nggak kalah bagus"
     
-    # Pembuka bernuansa PROBING (menggali kebutuhan dulu)
     if brand_alt == "iPhone":
         pembuka = f"Kak, {nama_kosong} lagi kosong nih. Boleh saya tahu, Kakak biasanya paling sering pakai HP buat apa? Kalau buat foto dan konten, kita ada {nama_alt} yang sekelas dan nggak kalah keren."
     elif brand_alt == "Samsung":
@@ -110,10 +94,8 @@ def generate_ide_probing(data_kosong, data_alternatif):
     else:
         pembuka = f"Kak, {nama_kosong} lagi kosong. Boleh saya tanya dulu, Kakak biasanya cari HP yang fokusnya ke mana—kamera, gaming, atau baterai awet? Kalau boleh saya saranin, {nama_alt} ini menarik buat dipertimbangkan."
     
-    # Penawaran keunggulan
     penawaran = f"{nama_alt} ini punya {kelebihan_teks}."
     
-    # Closing berdasarkan harga
     selisih = data_alternatif["Harga"] - data_kosong["Harga"]
     if selisih < -500000:
         closing = f"Harganya malah lebih murah {abs(selisih):,.0f} rupiah, Kak. Jadi lebih hemat!"
@@ -132,28 +114,25 @@ def generate_ide_probing(data_kosong, data_alternatif):
 st.subheader("🔍 HP apa yang sedang kosong?")
 st.markdown("*Biar aku bantu cariin penggantinya lengkap dengan cara jualan ☺️*")
 
-# ✨ Urutin alfabetis biar rapi dan gampang dicari
 pilihan_unik = sorted(df["Nama_Lengkap"].unique().tolist())
 
-# ✨ Fungsi search untuk st_searchbox
 def search_hp(searchterm: str):
     if not searchterm:
-        return pilihan_unik  # Tampilkan SEMUA pilihan saat kosong
+        return pilihan_unik
     return [
         hp for hp in pilihan_unik 
         if searchterm.lower() in hp.lower()
-    ]  # Tanpa batasan jumlah
+    ]
 
-# ✨ Search box dengan keyboard + autocomplete + SEMUA pilihan tampil saat diklik
 pilihan_customer = st_searchbox(
     search_hp,
     label="🔎 Cari HP yang sedang kosong:",
     placeholder="Ketik atau pilih nama HP...",
     key="search_hp",
-    default_options=pilihan_unik  # ✨ KUNCI: tampilkan semua pilihan saat kolom di-tap
+    default_options=pilihan_unik
 )
 
-# Slider untuk atur toleransi harga
+# ✨ Slider + tombol refresh di sidebar
 with st.sidebar:
     st.header("⚙️ Pengaturan")
     max_selisih = st.slider(
@@ -163,6 +142,18 @@ with st.sidebar:
         format="Rp %d"
     )
     top_n = st.slider("Jumlah rekomendasi:", 1, 10, 5)
+    
+    st.markdown("---")
+    st.markdown("### 🔄 Update Data")
+    st.caption("Klik tombol di bawah kalau habis edit Excel & upload ke GitHub.")
+    
+    # ✨ Tombol refresh manual
+    if st.button("🔄 Refresh Data Sekarang", use_container_width=True):
+        st.cache_data.clear()  # Hapus cache
+        st.success("✅ Data berhasil di-refresh!")
+        st.rerun()  # Rerun app biar data baru ke-load
+
+# ... (sisanya sama seperti sebelumnya, dari `if pilihan_customer:`)
 
 if pilihan_customer:
     kandidat, data_kosong = cari_alternatif(
@@ -174,7 +165,6 @@ if pilihan_customer:
     else:
         st.success(f"🔥 Ditemukan **{len(kandidat)} rekomendasi** pengganti untuk {pilihan_customer}!")
         
-        # Info produk kosong
         col_a, col_b, col_c = st.columns(3)
         col_a.metric("Harga Acuan", f"Rp {data_kosong['Harga']:,.0f}")
         col_b.metric("Tier", data_kosong['Tier'])
@@ -191,7 +181,6 @@ if pilihan_customer:
                 
                 st.markdown(f"### 🎯 Alternatif: {baris_data['Nama_Lengkap']}")
                 
-                # Info harga & selisih
                 selisih = baris_data["Harga"] - data_kosong["Harga"]
                 tanda = "+" if selisih > 0 else ""
                 st.caption(f"💰 Harga: **Rp {baris_data['Harga']:,.0f}** ({tanda}Rp {selisih:,.0f} dari {pilihan_customer}) | 🎯 Skor Kecocokan: **{baris_data['Skor']:.0f}/100**")
