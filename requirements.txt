@@ -2,3 +2,5 @@ streamlit
 pandas
 streamlit-searchbox
 openpyxl
+gspread
+google-auth
