@@ -323,7 +323,7 @@ div[data-baseweb="select"] > div:focus-within { border-color: #8FE9FF !important
 [data-testid="stRadio"] label p { font-size: .9rem !important; font-weight: 500 !important; margin: 0 !important; }
 [data-testid="stRadio"] > label:first-child { display: none !important; }
 
-/* MAIN NAV TABS (native st.tabs) */
+/* MAIN NAV TABS */
 .stTabs [data-baseweb="tab-list"] {
     gap: .4rem !important; overflow-x: auto; flex-wrap: nowrap;
     border-bottom: 1px solid rgba(150,200,255,.12);
@@ -357,7 +357,26 @@ div.stButton > button:hover {
 }
 div.stButton > button:active { transform: translateY(0); }
 
-/* ============ ANALYTICS ============ */
+/* DOWNLOAD BUTTON */
+div[data-testid="stDownloadButton"] > button {
+    background: linear-gradient(135deg, rgba(20,45,75,.85), rgba(8,22,42,.95)) !important;
+    color: #8ED8FF !important;
+    border: 1px solid rgba(142,216,255,.35) !important;
+    transition: all .25s cubic-bezier(.2,.8,.2,1) !important;
+    min-height: 3rem !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    width: 100% !important;
+    letter-spacing: .02em !important;
+}
+div[data-testid="stDownloadButton"] > button:hover {
+    border-color: #4DA6FF !important;
+    box-shadow: 0 0 22px rgba(77,166,255,.30), 0 8px 20px rgba(0,0,0,.30) !important;
+    transform: translateY(-2px);
+    color: #FFFFFF !important;
+}
+
+/* ANALYTICS */
 .dp-an-h2 { font-size: 1.6rem; font-weight: 700; color: #FFFFFF; margin: 0 0 .35rem; animation: dpFadeUp 0.5s ease-out both; }
 .dp-an-it { font-style: italic; font-weight: 300; color: #B4C0D4; margin-bottom: 1.5rem; animation: dpFadeUp 0.5s ease-out 0.05s both; }
 .dp-an-empty {
@@ -368,7 +387,6 @@ div.stButton > button:active { transform: translateY(0); }
     font-size: .95rem; font-weight: 300;
     animation: dpFadeUp 0.5s ease-out both;
 }
-
 .dp-kpi-row {
     display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: .9rem; margin: .5rem 0 1.8rem;
@@ -393,11 +411,30 @@ div.stButton > button:active { transform: translateY(0); }
 .dp-kpi-value.green { color: #4ADE80; text-shadow: 0 0 22px rgba(74,222,128,.35); }
 .dp-kpi-value.amber { color: #F5B84B; text-shadow: 0 0 22px rgba(245,184,75,.35); }
 .dp-kpi-sub { font-size: .75rem; color: #8E9BB0; margin-top: .45rem; font-weight: 300; }
-
 .dp-an-section {
     font-size: .9rem; font-weight: 600; color: #8ED8FF;
     letter-spacing: .02em; margin: .8rem 0 .6rem;
     animation: dpFadeUp 0.5s ease-out both;
+}
+
+/* PDF EXPORT SECTION */
+.dp-pdf-block {
+    margin-top: 2rem;
+    padding: 1.4rem 1.4rem 1.2rem;
+    background: linear-gradient(135deg, rgba(20,45,75,.55), rgba(8,22,42,.75));
+    border: 1px solid rgba(142,216,255,.20);
+    border-radius: 16px;
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 12px 40px rgba(0,0,0,.30), 0 0 30px rgba(77,166,255,.06);
+    animation: dpFadeUp 0.5s ease-out 0.15s both;
+}
+.dp-pdf-title {
+    font-size: 1rem; font-weight: 600; color: #FFFFFF; margin-bottom: .35rem;
+    display: flex; align-items: center; gap: .5rem;
+}
+.dp-pdf-sub {
+    font-size: .85rem; color: #8E9BB0; margin-bottom: 1rem;
+    line-height: 1.55; font-weight: 300;
 }
 
 /* reduce motion */
@@ -429,6 +466,7 @@ div.stButton > button:active { transform: translateY(0); }
     .dp-kpi-value { font-size: 1.5rem; }
     .dp-kpi-value[style] { font-size: .95rem !important; }
     .stTabs [data-baseweb="tab"] { padding: .65rem 1rem !important; font-size: .9rem; }
+    .dp-pdf-block { padding: 1.1rem 1rem 1rem; }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -696,6 +734,25 @@ def cari_alternatif(ref, pool, mode, tol, top_n):
     return hasil[:top_n]
 
 
+def cari_gugur(ref, pool, mode, tol, sudah_dipilih_ids, top_n=5):
+    kandidat = pool[~pool["Nama_Lengkap"].isin(sudah_dipilih_ids)]
+    kandidat = kandidat[kandidat["Nama_Lengkap"] != ref["Nama_Lengkap"]]
+    gugur = []
+    for _, row in kandidat.iterrows():
+        try:
+            sel = float(row["Harga"]) - float(ref["Harga"])
+        except (TypeError, ValueError):
+            continue
+        if pd.isna(sel):
+            continue
+        h = hitung_kecocokan(ref, row, mode, tol)
+        h["row"] = row
+        h["selisih"] = sel
+        gugur.append(h)
+    gugur.sort(key=lambda x: (-x["skor"], abs(x["selisih"])))
+    return gugur[:top_n]
+
+
 def gabung_teks(items):
     items = list(items)
     if len(items) <= 1:
@@ -857,7 +914,6 @@ def hitung_total_attempt():
 
 @st.cache_data(ttl=30)
 def muat_log_df():
-    """Load semua baris log dari Sheets (fallback CSV). Return DataFrame."""
     ws, _ = get_log_sheet()
     if ws is not None:
         try:
@@ -877,6 +933,258 @@ def muat_log_df():
         except Exception:
             pass
     return pd.DataFrame(columns=LOG_HEADER)
+
+
+# ============================================
+# PDF REPORT GENERATOR
+# ============================================
+def buat_pdf_report(df_log, filter_store=None):
+    """Bikin PDF report 1 halaman dari df_log. Return (pdf_bytes, error)."""
+    try:
+        from fpdf import FPDF
+    except ImportError:
+        return None, "Library fpdf2 belum terinstall. Tambahkan 'fpdf2' ke requirements.txt"
+
+    df = df_log.copy()
+    attempts = df[df["Event"].astype(str) == "attempt"].copy()
+    outcomes = df[df["Event"].astype(str) == "outcome"].copy()
+
+    total_attempts = len(attempts)
+    total_outcomes = len(outcomes)
+    berhasil_set = {"Berhasil menjual", "Switch berhasil"}
+    berhasil = outcomes[outcomes["Hasil"].astype(str).isin(berhasil_set)]
+    switch_rate = (len(berhasil) / total_outcomes * 100) if total_outcomes > 0 else 0.0
+
+    produk_unik = 0
+    top_produk = "—"
+    if "Produk_Dicari" in attempts.columns and total_attempts > 0:
+        produk_unik = attempts["Produk_Dicari"].nunique()
+        t = attempts["Produk_Dicari"].value_counts()
+        if len(t) > 0:
+            top_produk = str(t.index[0])
+
+    periode = "—"
+    if "Timestamp" in attempts.columns and total_attempts > 0:
+        ts = pd.to_datetime(attempts["Timestamp"], errors="coerce").dropna()
+        if not ts.empty:
+            awal = ts.min().strftime("%d %b %Y")
+            akhir = ts.max().strftime("%d %b %Y")
+            periode = f"{awal} - {akhir}" if awal != akhir else awal
+
+    pdf = FPDF(orientation="P", unit="mm", format="A4")
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+
+    # ---- Header block ----
+    pdf.set_fill_color(10, 20, 36)
+    pdf.rect(0, 0, 210, 50, "F")
+
+    pdf.set_text_color(142, 216, 255)
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.set_xy(15, 12)
+    pdf.cell(0, 5, "DIGIPLUS  /  MAPTECH", ln=0)
+
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Helvetica", "B", 22)
+    pdf.set_xy(15, 18)
+    pdf.cell(0, 12, "Smart Sales Assistant", ln=1)
+
+    pdf.set_text_color(180, 192, 212)
+    pdf.set_font("Helvetica", "", 11)
+    pdf.set_x(15)
+    pdf.cell(0, 6, "Switch-Selling Pilot Report", ln=1)
+
+    # Periode & store di kanan
+    pdf.set_text_color(142, 216, 255)
+    pdf.set_font("Helvetica", "B", 7)
+    pdf.set_xy(140, 14)
+    pdf.cell(55, 4, "PERIODE", align="R", ln=1)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_xy(140, 18)
+    pdf.cell(55, 5, periode, align="R", ln=1)
+
+    store_label = "Semua Store"
+    if filter_store and filter_store != "Semua Store":
+        store_label = filter_store
+    pdf.set_text_color(142, 216, 255)
+    pdf.set_font("Helvetica", "B", 7)
+    pdf.set_xy(140, 27)
+    pdf.cell(55, 4, "STORE", align="R", ln=1)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_xy(140, 31)
+    if len(store_label) > 28:
+        store_label = store_label[:26] + "..."
+    pdf.cell(55, 5, store_label, align="R", ln=1)
+
+    # ---- Section: Ringkasan Eksekutif ----
+    pdf.set_xy(15, 60)
+    pdf.set_text_color(142, 216, 255)
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.cell(0, 5, "RINGKASAN EKSEKUTIF", ln=1)
+
+    kpi_data = [
+        ("TOTAL ATTEMPTS", str(total_attempts), f"dari target {TARGET_ATTEMPTS}"),
+        ("SWITCH RATE", f"{switch_rate:.0f}%", f"{len(berhasil)} berhasil dari {total_outcomes} outcome"),
+        ("PRODUK UNIK DICARI", str(produk_unik), "variasi customer request"),
+        ("TOP PRODUK", top_produk, "paling sering dicari"),
+    ]
+    box_w = 88
+    box_h = 28
+    gap = 4
+    start_y = 68
+
+    for i, (label, value, sub) in enumerate(kpi_data):
+        col = i % 2
+        row = i // 2
+        x = 15 + col * (box_w + gap)
+        y = start_y + row * (box_h + gap)
+
+        pdf.set_fill_color(245, 247, 250)
+        pdf.rect(x, y, box_w, box_h, "F")
+        pdf.set_fill_color(77, 166, 255)
+        pdf.rect(x, y, 1.5, box_h, "F")
+
+        pdf.set_text_color(120, 130, 145)
+        pdf.set_font("Helvetica", "B", 7)
+        pdf.set_xy(x + 4, y + 3)
+        pdf.cell(0, 4, label, ln=1)
+
+        pdf.set_text_color(10, 20, 36)
+        val_display = value
+        if len(val_display) > 26:
+            val_display = val_display[:24] + "..."
+        fnt_size = 16 if len(value) < 8 else 12
+        pdf.set_font("Helvetica", "B", fnt_size)
+        pdf.set_xy(x + 4, y + 9)
+        pdf.cell(0, 8, val_display, ln=1)
+
+        pdf.set_text_color(140, 150, 165)
+        pdf.set_font("Helvetica", "", 7)
+        pdf.set_xy(x + 4, y + 20)
+        pdf.cell(0, 4, sub[:42], ln=1)
+
+    # ---- Section: Top 5 Alternatif ----
+    y_now = start_y + 2 * (box_h + gap) + 6
+    pdf.set_xy(15, y_now)
+    pdf.set_text_color(142, 216, 255)
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.cell(0, 5, "TOP 5 ALTERNATIF DIREKOMENDASIKAN", ln=1)
+
+    alt_cols = [c for c in ["Alternatif_1", "Alternatif_2", "Alternatif_3"] if c in attempts.columns]
+    all_alt = []
+    for col in alt_cols:
+        all_alt.extend([str(a).strip() for a in attempts[col].dropna().tolist()
+                        if a and str(a).strip()])
+    if all_alt:
+        top_alt = pd.Series(all_alt).value_counts().head(5)
+        y_table = y_now + 7
+        for i, (name, count) in enumerate(top_alt.items()):
+            row_y = y_table + i * 7
+            if i % 2 == 0:
+                pdf.set_fill_color(248, 250, 252)
+                pdf.rect(15, row_y, 180, 7, "F")
+            pdf.set_text_color(10, 20, 36)
+            pdf.set_font("Helvetica", "", 9)
+            pdf.set_xy(18, row_y + 1.5)
+            name_display = str(name)
+            if len(name_display) > 55:
+                name_display = name_display[:52] + "..."
+            pdf.cell(140, 4, name_display, ln=0)
+            pdf.set_font("Helvetica", "B", 9)
+            pdf.set_text_color(77, 166, 255)
+            pdf.set_xy(160, row_y + 1.5)
+            pdf.cell(30, 4, str(count), align="R", ln=0)
+        y_now = y_table + len(top_alt) * 7 + 6
+    else:
+        pdf.set_text_color(140, 150, 165)
+        pdf.set_font("Helvetica", "I", 9)
+        pdf.set_xy(15, y_now + 7)
+        pdf.cell(0, 5, "Belum ada data alternatif.", ln=1)
+        y_now += 14
+
+    # ---- Section: Distribusi Outcome ----
+    if y_now > 235:
+        pdf.add_page()
+        y_now = 20
+    pdf.set_xy(15, y_now)
+    pdf.set_text_color(142, 216, 255)
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.cell(0, 5, "DISTRIBUSI OUTCOME", ln=1)
+
+    if not outcomes.empty and "Hasil" in outcomes.columns:
+        oc = outcomes["Hasil"].astype(str).value_counts()
+        y_table = y_now + 7
+        for i, (name, count) in enumerate(oc.items()):
+            row_y = y_table + i * 7
+            if i % 2 == 0:
+                pdf.set_fill_color(248, 250, 252)
+                pdf.rect(15, row_y, 180, 7, "F")
+            pdf.set_text_color(10, 20, 36)
+            pdf.set_font("Helvetica", "", 9)
+            pdf.set_xy(18, row_y + 1.5)
+            pdf.cell(140, 4, str(name), ln=0)
+            pdf.set_font("Helvetica", "B", 9)
+            if "berhasil" in str(name).lower():
+                pdf.set_text_color(74, 200, 120)
+            else:
+                pdf.set_text_color(77, 166, 255)
+            pdf.set_xy(160, row_y + 1.5)
+            pdf.cell(30, 4, str(count), align="R", ln=0)
+        y_now = y_table + len(oc) * 7 + 6
+    else:
+        pdf.set_text_color(140, 150, 165)
+        pdf.set_font("Helvetica", "I", 9)
+        pdf.set_xy(15, y_now + 7)
+        pdf.cell(0, 5, "Belum ada outcome.", ln=1)
+        y_now += 14
+
+    # ---- Section: Top 10 Produk ----
+    if y_now > 225:
+        pdf.add_page()
+        y_now = 20
+    pdf.set_xy(15, y_now)
+    pdf.set_text_color(142, 216, 255)
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.cell(0, 5, "TOP 10 PRODUK PALING DICARI", ln=1)
+
+    if "Produk_Dicari" in attempts.columns and total_attempts > 0:
+        tp = attempts["Produk_Dicari"].value_counts().head(10)
+        y_table = y_now + 7
+        for i, (name, count) in enumerate(tp.items()):
+            row_y = y_table + i * 7
+            if row_y > 270:
+                pdf.add_page()
+                y_table = 13
+                row_y = 20
+            if i % 2 == 0:
+                pdf.set_fill_color(248, 250, 252)
+                pdf.rect(15, row_y, 180, 7, "F")
+            pdf.set_text_color(10, 20, 36)
+            pdf.set_font("Helvetica", "", 9)
+            pdf.set_xy(18, row_y + 1.5)
+            name_display = str(name)
+            if len(name_display) > 55:
+                name_display = name_display[:52] + "..."
+            pdf.cell(140, 4, name_display, ln=0)
+            pdf.set_font("Helvetica", "B", 9)
+            pdf.set_text_color(77, 166, 255)
+            pdf.set_xy(160, row_y + 1.5)
+            pdf.cell(30, 4, str(count), align="R", ln=0)
+
+    # ---- Footer ----
+    pdf.set_y(-22)
+    pdf.set_text_color(140, 150, 165)
+    pdf.set_font("Helvetica", "I", 8)
+    waktu_export = datetime.now(WIB).strftime("%d %b %Y, %H:%M WIB")
+    pdf.cell(0, 5, f"Report dibuat otomatis oleh Digiplus Smart Sales Assistant  -  {waktu_export}",
+             align="C", ln=1)
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.set_text_color(10, 20, 36)
+    pdf.cell(0, 5, "created by Herlian Bhara", align="C", ln=1)
+
+    return bytes(pdf.output()), None
 
 
 # ============================================
@@ -988,7 +1296,7 @@ def render_header():
     )
 
 
-def render_alternatif(ref, h, mode):
+def render_alternatif(ref, h, mode, gugur=None):
     row = h["row"]
     nama = row["Nama_Lengkap"]
     sel = h["selisih"]
@@ -1153,7 +1461,6 @@ def render_analytics():
         unsafe_allow_html=True,
     )
 
-    # Row 1: Attempts per hari + Top Alternatif
     c1, c2 = st.columns(2, gap="medium")
 
     with c1:
@@ -1204,7 +1511,6 @@ def render_analytics():
         else:
             st.caption("Belum ada data alternatif.")
 
-    # Row 2: Donut outcome + Top 10 produk
     c3, c4 = st.columns(2, gap="medium")
 
     with c3:
@@ -1253,6 +1559,34 @@ def render_analytics():
                 st.altair_chart(_style_chart(chart), use_container_width=True)
         else:
             st.caption("Belum ada data produk dicari.")
+
+    # ============ PDF EXPORT ============
+    st.markdown(
+        '<div class="dp-pdf-block">'
+        '<div class="dp-pdf-title">📄 Export PDF Report</div>'
+        '<div class="dp-pdf-sub">Download ringkasan pilot sebagai PDF 1 halaman — '
+        'siap dikirim ke stakeholder atau dilampirkan di laporan presentasi.</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    try:
+        pdf_bytes, pdf_err = buat_pdf_report(df_log, filter_store=None)
+        if pdf_err:
+            st.caption(f"⚠️ PDF belum bisa dibuat: {pdf_err}")
+        elif pdf_bytes:
+            nama_file = f"SSA_Pilot_Report_{datetime.now(WIB).strftime('%Y%m%d_%H%M')}.pdf"
+            st.download_button(
+                label="⬇️  Download PDF Report",
+                data=pdf_bytes,
+                file_name=nama_file,
+                mime="application/pdf",
+                use_container_width=True,
+                key="pdf_download_btn",
+            )
+    except Exception as e:
+        print("PDF error:", repr(e))
+        st.caption("⚠️ PDF report belum bisa dibuat saat ini.")
 
 
 # ============================================
@@ -1397,7 +1731,10 @@ with tab_sa:
                     label_visibility="collapsed",
                 )
 
-                render_alternatif(ref, h_selected, mode)
+                hasil_ids = [hh["row"]["Nama_Lengkap"] for hh in hasil]
+                gugur = cari_gugur(ref, df_toko, mode, tol, hasil_ids, top_n=5)
+
+                render_alternatif(ref, h_selected, mode, gugur)
                 render_outcome(st.session_state.get("attempt_id"), pilihan_customer, mode)
         except Exception as e:
             print("UI error:", repr(e))
