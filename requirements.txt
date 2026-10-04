@@ -4,3 +4,4 @@ streamlit-searchbox
 openpyxl
 gspread
 google-auth
+fpdf2
