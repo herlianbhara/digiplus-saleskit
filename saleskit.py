@@ -98,6 +98,12 @@ hr, .dp-sep {
     font-size: 1rem; font-weight: 400; color: #B4C0D4;
     margin: .75rem auto 0; max-width: 620px; line-height: 1.55;
 }
+.dp-sub-part2 {
+    display: inline-block;
+    font-size: .95rem;
+    opacity: .92;
+    margin-top: .15rem;
+}
 .dp-sep { margin: 1.6rem 0 1.4rem; }
 
 /* ============ SECTION HEADINGS ============ */
@@ -303,6 +309,7 @@ div.stButton > button:hover {
     .dp-head { padding: 1.4rem 0 0.8rem; }
     .dp-title { font-size: 1.5rem; }
     .dp-sub { font-size: .92rem; margin-top: .5rem; }
+    .dp-sub-part2 { font-size: .88rem; }
     .dp-ref {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: .5rem;
@@ -341,9 +348,7 @@ components.html("""
             }
         });
     };
-    // Reset saat load
     resetScroll();
-    // Reset setiap ada interaksi apapun di halaman
     doc.addEventListener('click', (e) => {
         if (e.target && e.target.closest && e.target.closest('[data-testid="stRadio"]')) {
             setTimeout(resetScroll, 30);
@@ -351,13 +356,11 @@ components.html("""
             setTimeout(resetScroll, 400);
         }
     }, true);
-    // Reset juga saat scroll di root (kalau user somehow geser)
     doc.addEventListener('scroll', (e) => {
         if (e.target === doc.documentElement || e.target === doc.body) {
             resetScroll();
         }
     }, true);
-    // MutationObserver untuk handle rerun Streamlit
     const observer = new MutationObserver(() => resetScroll());
     observer.observe(doc.body, { childList: true, subtree: false });
 })();
@@ -880,7 +883,9 @@ def render_header():
     st.markdown(
         '<div class="dp-head">'
         '<div class="dp-title">Digiplus Smart Sales Assistant</div>'
-        '<div class="dp-sub">Produk kosong? Jangan Khawatir Kita Masih Bisa Jual Yang Lain!</div>'
+        '<div class="dp-sub">Produk kosong?<br>'
+        '<span class="dp-sub-part2">Jangan Khawatir Kita Masih Bisa Jual Yang Lain!</span>'
+        '</div>'
         '</div>'
         '<div class="dp-sep"></div>',
         unsafe_allow_html=True,
