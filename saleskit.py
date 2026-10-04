@@ -48,10 +48,11 @@ div.stButton > button {width: 100%; min-height: 3rem; border-radius: 12px;}
 # 1. BOBOT SKOR (total maksimal 100)
 # ============================================
 W_HARGA = 25
-W_TIER = 20
+W_TIER = 15
 W_CHIPSET = 20
-W_BRAND = 5      # hanya untuk mode "toko" (produk toko kosong)
-W_KEBUTUHAN = 30  # hanya dihitung kalau sales memilih prioritas customer
+W_BENTUK = 20     # hanya dihitung kalau salah satu HP lipat (lipat dicocokkan dengan lipat)
+W_BRAND = 5       # hanya untuk mode "toko" (produk toko kosong)
+W_KEBUTUHAN = 25  # hanya dihitung kalau sales memilih prioritas customer
 
 PRIORITAS = {
     "⚡ Performa": "performa",
@@ -159,6 +160,9 @@ def level_chipset(nama):
     if not s:
         return None
     if "snapdragon" in s or "qualcomm" in s:
+        m3 = re.search(r"snapdragon\s*(\d)\d{2}\b", s)
+        if m3:
+            return {8: 5, 7: 3.5, 6: 2, 4: 1.5}.get(int(m3.group(1)))
         m = re.search(r"snapdragon\s*(\d)", s)
         if m:
             return {8: 5, 7: 4, 6: 3, 4: 2}.get(int(m.group(1)))
@@ -170,6 +174,10 @@ def level_chipset(nama):
         m = re.search(r"exynos\s*(\d)", s)
         if m:
             return {2: 5, 1: 3.5}.get(int(m.group(1)))
+    if "kirin" in s:
+        m = re.search(r"kirin\s*(\d)", s)
+        if m:
+            return {9: 5, 8: 3.5}.get(int(m.group(1)))
     if "tensor" in s:
         return 4.5
     if "apple" in s or re.search(r"\ba\d{2}\b", s):
@@ -179,6 +187,10 @@ def level_chipset(nama):
     if "unisoc" in s:
         return 1.5
     return None
+
+
+def adalah_lipat(nama):
+    return bool(re.search(r"fold|flip|razr|find n\d|mate x\d|magic v\d", str(nama).lower()))
 
 
 def kekuatan_prioritas(key, row, level_chip):
@@ -268,6 +280,17 @@ def hitung_kecocokan(ref, alt, mode, prioritas, tol):
         if str(alt.get("Brand")) == str(ref.get("Brand")):
             dapat += W_BRAND
             alasan.append(("✅", f"Brand sama ({alt.get('Brand')})"))
+
+    # --- Bentuk: hanya relevan kalau salah satu HP lipat ---
+    lipat_ref = adalah_lipat(ref.get("Nama_Lengkap"))
+    lipat_alt = adalah_lipat(alt.get("Nama_Lengkap"))
+    if lipat_ref or lipat_alt:
+        maks += W_BENTUK
+        if lipat_ref == lipat_alt:
+            dapat += W_BENTUK
+            alasan.append(("✅", "Sama-sama HP lipat"))
+        else:
+            alasan.append(("➖", "Bentuk berbeda (HP lipat vs HP biasa)"))
 
     # --- Kebutuhan customer (hanya kalau sales memilih prioritas) ---
     if prioritas:
@@ -662,7 +685,10 @@ if pilihan_customer:
         st.error("⚠️ Harga produk ini belum diisi di Excel, jadi alternatif belum bisa dicari.")
         st.stop()
 
-    tol = float(max_selisih) if mode == "toko" else 0.3 * float(ref["Harga"])
+    if mode == "toko":
+        tol = max(float(max_selisih), 0.15 * float(ref["Harga"]))
+    else:
+        tol = 0.3 * float(ref["Harga"])
 
     # --- Logging: 1 attempt per pencarian (hanya saat produk berubah) ---
     if st.session_state.get("last_logged_product") != pilihan_customer:
