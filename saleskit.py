@@ -12,69 +12,59 @@ from streamlit_searchbox import st_searchbox
 st.set_page_config(page_title="Digiplus Smart Sales Assistant", page_icon="D",
                    layout="wide", initial_sidebar_state="collapsed")
 
-# Warna aksen merah Digiplus: ubah #E31E24 di bawah kalau perlu
+# Biru (#4DA6FF) = highlight interaktif. Merah Digiplus (#E31E24) hanya aksen kecil.
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;800&display=swap');
 html, body, .stApp, button, input, textarea, [class*="st-"] {font-family: 'Roboto', Arial, sans-serif !important;}
-.stApp {background: radial-gradient(1100px 520px at 85% -10%, rgba(227,30,36,.12), transparent 60%), #06080D; color: #F5F5F5;}
+.stApp {background: radial-gradient(900px 420px at 50% -8%, rgba(77,166,255,.17), transparent 65%), linear-gradient(180deg,#050812,#080C16 55%,#0B1220); color:#F3F6FB;}
 header[data-testid="stHeader"] {background: transparent;} #MainMenu, footer {visibility: hidden;}
-.block-container {max-width: 1080px; padding: 1.4rem 1rem 4rem;}
-.dp-head {display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:.8rem;}
-.dp-brand {font-size:.8rem; letter-spacing:.35em; color:#E31E24; font-weight:700;}
-.dp-title {font-size:1.5rem; font-weight:300; letter-spacing:.14em;}
-.dp-tag {font-size:.65rem; letter-spacing:.22em; color:#9CA3AF;}
-.dp-sub {color:#A7AFBF; font-size:.95rem; margin:.7rem 0 1rem;}
-.dp-h {font-size:.72rem; letter-spacing:.28em; color:#9CA3AF; text-transform:uppercase; margin:1.6rem 0 .6rem; font-weight:500;}
-.dp-label, .dp-sl {font-size:.68rem; letter-spacing:.28em; color:#E31E24; font-weight:700; margin-bottom:.4rem;}
-.dp-sl {margin-top:.6rem;}
-.dp-card {background: rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:1.2rem 1.3rem; box-shadow:0 10px 40px rgba(0,0,0,.35);}
-.dp-hero {box-shadow: 0 0 0 1px rgba(227,30,36,.35), 0 18px 60px rgba(227,30,36,.10); animation: dpin .35s ease;}
-@keyframes dpin {from {opacity:0; transform: translateY(6px);} to {opacity:1; transform:none;}}
-.dp-status {display:flex; gap:.8rem; align-items:flex-start; padding:.9rem 1.1rem; border-radius:12px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); margin:1rem 0;}
-.dp-dot {width:9px; height:9px; border-radius:50%; margin-top:.4rem; background:#E31E24; box-shadow:0 0 12px #E31E24;}
-.dp-s-warn .dp-dot {background:#E0A526; box-shadow:0 0 12px #E0A526;}
-.dp-slabel {font-size:.68rem; letter-spacing:.26em; color:#9CA3AF; font-weight:500;}
-.dp-sname {font-size:1.15rem; font-weight:500;} .dp-sdesc {font-size:.85rem; color:#A7AFBF;}
-.dp-mono {height:150px; border-radius:10px; display:flex; flex-direction:column; justify-content:center; align-items:center;
-          background: linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.07); margin-bottom:1rem;}
-.dp-mono-b {font-size:1.7rem; letter-spacing:.2em; font-weight:300; text-transform:uppercase;} .dp-mono-c {font-size:.8rem; color:#9CA3AF; margin-top:.3rem;}
-.dp-img {width:100%; max-height:260px; object-fit:contain; margin-bottom:1rem;}
-.dp-name {font-size:1.7rem; font-weight:700; line-height:1.2;} .dp-price {font-size:1.25rem; margin-top:.4rem; font-weight:300;}
-.dp-badge {display:inline-block; font-size:.78rem; padding:2px 10px; border-radius:999px; margin-left:.5rem; background:rgba(255,255,255,.08); font-weight:500;}
-.dp-up {color:#E0A526; background:rgba(224,165,38,.12);} .dp-down {color:#4FBF8B; background:rgba(79,191,139,.12);}
-.dp-chips {margin:.8rem 0;} .dp-chip {display:inline-block; font-size:.74rem; padding:3px 11px; margin:0 .4rem .4rem 0; border:1px solid rgba(255,255,255,.16); border-radius:999px; color:#D6DAE3;}
-.dp-score-t {display:flex; justify-content:space-between; font-size:.7rem; letter-spacing:.2em; color:#9CA3AF;} .dp-score-t b {color:#fff; font-size:.95rem; letter-spacing:0;}
-.dp-bar {height:5px; border-radius:99px; background:rgba(255,255,255,.1); margin-top:.45rem; overflow:hidden;}
-.dp-bar > div {height:100%; background:#E31E24; border-radius:99px; transition: width .8s ease;}
-.dp-target, .dp-note {font-size:.82rem; color:#A7AFBF; margin-top:.8rem;} .dp-note {color:#E0A526;}
-.dp-pts {display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem;}
-.dp-pt {background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.09); border-radius:12px; padding:1rem;}
-.dp-pn {font-size:.72rem; color:#E31E24; font-weight:700; letter-spacing:.15em;} .dp-pk {font-size:.66rem; letter-spacing:.24em; color:#9CA3AF; margin:.35rem 0;}
-.dp-pv {font-size:.98rem; line-height:1.45;}
-.dp-why {display:grid; gap:.45rem;} .dp-w {display:flex; gap:.6rem; align-items:center; font-size:.93rem; color:#E5E7EB;}
-.dp-w i {width:7px; height:7px; border-radius:50%; background:#4FBF8B; flex:none;} .dp-w.no i {background:#6B7280;}
-.dp-cmp {display:grid; grid-template-columns: 90px 1fr 1fr; gap:.55rem .9rem; font-size:.88rem;}
-.dp-ch {font-size:.72rem; color:#9CA3AF; letter-spacing:.1em;} .dp-ch b {display:block; color:#fff; font-size:.92rem; letter-spacing:0; font-weight:500;}
-.dp-cl {color:#9CA3AF; font-size:.76rem;} .dp-cv {color:#E5E7EB;} .dp-cb {color:#fff; border-left:2px solid #E31E24; padding-left:.7rem;}
-.dp-done {border:1px solid rgba(79,191,139,.4); color:#4FBF8B; padding:.8rem 1rem; border-radius:12px; background:rgba(79,191,139,.07);}
-.dp-pilot {margin-top:2.2rem; padding:1rem 1.2rem; border-top:1px solid rgba(255,255,255,.08);}
-.dp-pl {font-size:.66rem; letter-spacing:.28em; color:#9CA3AF;} .dp-pn2 {font-size:1.6rem; font-weight:300;} .dp-pn2 span {font-size:.72rem; letter-spacing:.2em; color:#9CA3AF;}
-.dp-empty {padding:2.4rem 1rem; text-align:center; font-size:1.1rem; color:#E5E7EB;} .dp-empty span {color:#9CA3AF; font-size:.9rem;}
-/* tombol & selector bergaya produk, bukan Streamlit default */
-div.stButton > button {width:100%; min-height:3.1rem; border-radius:12px; background:rgba(255,255,255,.05); color:#fff; border:1px solid rgba(255,255,255,.14); transition: all .2s ease;}
-div.stButton > button:hover {border-color:#E31E24; background:rgba(227,30,36,.12); color:#fff;}
-div[role="radiogroup"] {gap:.5rem;} div[role="radiogroup"] label {background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:.75rem .9rem; width:100%; transition: all .2s ease;}
-div[role="radiogroup"] label:has(input:checked) {border-color:#E31E24; background:rgba(227,30,36,.14); box-shadow:0 0 18px rgba(227,30,36,.25);}
-div[role="radiogroup"] label > div:first-child {display:none;}
-div[data-testid="stCode"] pre {white-space: pre-wrap !important; line-height:1.55;}
-@media (max-width: 768px) {
-  .st-key-showcase [data-testid="stHorizontalBlock"] {flex-direction: column-reverse; gap:.6rem;}
-  .st-key-showcase div[role="radiogroup"] {flex-direction: row; overflow-x:auto; flex-wrap:nowrap;}
-  .st-key-showcase div[role="radiogroup"] label {white-space:nowrap; width:auto;}
-  .dp-pts {grid-template-columns:1fr;} .dp-cmp {grid-template-columns: 70px 1fr 1fr; font-size:.82rem;}
-  .dp-name {font-size:1.4rem;} .dp-title {font-size:1.1rem;} .dp-tag {display:none;}
-}
+.block-container {max-width: 1060px; padding: 2rem 1rem 4rem;}
+hr, .dp-sep {border:none; height:1px; background: linear-gradient(90deg, transparent, rgba(150,200,255,.25), transparent); margin:1.2rem 0;}
+.dp-top {display:flex; align-items:center; gap:.9rem;}
+.dp-logo {width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.3rem;
+          background: linear-gradient(145deg, rgba(77,166,255,.25), rgba(255,255,255,.04)); border:1px solid rgba(150,200,255,.3);
+          box-shadow: 0 0 22px rgba(77,166,255,.25); position:relative;}
+.dp-logo::after {content:""; position:absolute; right:-3px; bottom:-3px; width:9px; height:9px; border-radius:50%; background:#E31E24;}
+.dp-title {font-size:2rem; font-weight:700; letter-spacing:-.01em; margin:0;}
+.dp-sub {font-size:.98rem; font-weight:400; color:#B4C0D4; margin:.5rem 0 0;}
+.dp-h2 {font-size:1.45rem; font-weight:500; margin:1.6rem 0 .2rem;}
+.dp-it {font-style:italic; font-weight:300; color:#B4C0D4; margin-bottom:1.1rem;}
+.dp-glass {background: rgba(255,255,255,.045); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+           border:1px solid rgba(150,200,255,.12); border-radius:14px; padding:1.1rem 1.25rem;
+           box-shadow: 0 10px 40px rgba(0,0,0,.35), 0 0 30px rgba(80,150,255,.08);}
+.dp-ch {font-size:1.02rem; font-weight:500; color:#8ED8FF; margin-bottom:.9rem;}
+.dp-probe {background: rgba(176,150,60,.10); border-color: rgba(230,205,120,.20); box-shadow: 0 10px 40px rgba(0,0,0,.35), 0 0 26px rgba(200,170,70,.07);}
+.dp-probe .dp-ch {color:#EBDDA0;}
+.dp-pt {display:flex; gap:.6rem; margin:.1rem 0 .95rem; line-height:1.55; font-size:1rem; font-weight:400;}
+.dp-script {font-style:italic; line-height:1.7; font-size:1rem; font-weight:300; color:#F5F1E4;}
+.dp-reco {display:block; padding:1rem 1.25rem; border-radius:14px; backdrop-filter: blur(16px);
+          background: linear-gradient(135deg, rgba(14,96,68,.55), rgba(8,52,42,.55)); border:1px solid rgba(90,225,165,.30);
+          box-shadow: 0 0 34px rgba(60,200,140,.15); margin:1rem 0 1.3rem;}
+.dp-rl {font-size:.74rem; letter-spacing:.2em; font-weight:500; color:#9FE8C6;}
+.dp-rt {font-size:1.35rem; font-weight:700; color:#fff; margin-top:.15rem;} .dp-rs {font-size:.82rem; color:#BFE9D6; margin-top:.2rem; font-weight:300;}
+.dp-ref {display:grid; grid-template-columns: repeat(3,1fr); gap:1rem; padding:.4rem 0 .6rem;}
+.dp-rk {font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:#8794AB; font-weight:500;}
+.dp-rv {font-size:1.9rem; font-weight:500; color:#fff; text-shadow: 0 0 24px rgba(77,166,255,.35); margin-top:.15rem;}
+.dp-alt {font-size:1.6rem; font-weight:700; margin:1.1rem 0 .25rem;} .dp-meta {color:#A9B6CB; font-size:.95rem; margin-bottom:1rem; font-weight:300;}
+.dp-meta b {color:#8ED8FF; font-weight:500;}
+.dp-done {border:1px solid rgba(90,225,165,.35); color:#9FE8C6; padding:.8rem 1rem; border-radius:12px; background:rgba(14,96,68,.2);}
+.dp-pilot {margin-top:2.4rem;} .dp-pl {font-size:.7rem; letter-spacing:.24em; color:#8794AB;} .dp-pn2 {font-size:1.5rem; font-weight:300;} .dp-pn2 span {font-size:.72rem; letter-spacing:.18em; color:#8794AB;}
+.dp-bar {height:4px; border-radius:99px; background:rgba(255,255,255,.1); margin-top:.5rem; overflow:hidden;} .dp-bar > div {height:100%; background:linear-gradient(90deg,#4DA6FF,#8FE9FF); box-shadow:0 0 10px #4DA6FF;}
+/* search bar */
+div[data-baseweb="select"] > div {background: rgba(255,255,255,.05) !important; border:1px solid rgba(150,200,255,.2) !important; border-radius:12px !important; min-height:3.2rem; transition: all .2s ease;}
+div[data-baseweb="select"] > div:hover {border-color: rgba(143,233,255,.45) !important;}
+div[data-baseweb="select"] > div:focus-within {border-color:#8FE9FF !important; box-shadow: 0 0 0 1px rgba(143,233,255,.5), 0 0 24px rgba(77,166,255,.28) !important;}
+/* tabs */
+.stTabs [data-baseweb="tab-list"] {gap:.3rem; overflow-x:auto; flex-wrap:nowrap; border-bottom:1px solid rgba(150,200,255,.12);}
+.stTabs [data-baseweb="tab"] {background:transparent; color:#8E9BB0; height:auto; padding:.65rem 1.05rem; white-space:nowrap; border-radius:10px 10px 0 0; transition: all .2s ease;}
+.stTabs [data-baseweb="tab"]:hover {color:#fff; background: rgba(77,166,255,.06);}
+.stTabs [aria-selected="true"] {color:#fff !important; background: rgba(77,166,255,.11); text-shadow: 0 0 14px rgba(77,166,255,.55);}
+.stTabs [data-baseweb="tab-highlight"] {background:#4DA6FF !important; height:2px !important; box-shadow:0 0 12px #4DA6FF;}
+.stTabs [data-baseweb="tab-border"] {background: transparent !important;}
+div.stButton > button {width:100%; min-height:3rem; border-radius:12px; background: rgba(255,255,255,.05); color:#fff; border:1px solid rgba(150,200,255,.18); transition: all .2s ease;}
+div.stButton > button:hover {border-color:#4DA6FF; background: rgba(77,166,255,.12); color:#fff; box-shadow:0 0 18px rgba(77,166,255,.2);}
+@media (max-width: 768px) {.dp-title {font-size:1.45rem;} .dp-rv {font-size:1.15rem;} .dp-ref {gap:.5rem;} .dp-alt {font-size:1.3rem;} .dp-reco .dp-rt {font-size:1.15rem;}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -381,35 +371,30 @@ def kecil(t):
 
 
 def buat_script(ref_nama, alt_row, mode, selisih):
-    """Script 3 bagian dari data produk asli. Tidak mengklaim hal yang tidak ada di data."""
-    kondisi = "memang belum kami jual di Digiplus" if mode == "kompetitor" else "saat ini belum tersedia di Digiplus"
-    tier = clean(alt_row.get("Tier"))
-    kelas = f"di kelas {tier} dengan kisaran harga yang cukup dekat" if tier else "dengan kisaran harga yang cukup dekat"
-    opening = (f"Baik Kak, untuk {ref_nama} {kondisi}. Tapi supaya Kakak tidak perlu cari ke tempat lain, "
-               f"saya punya satu alternatif {kelas}, yang menurut saya layak dipertimbangkan.")
-
+    """Script jualan natural 4-7 kalimat. Hanya memakai data produk, tanpa klaim 'sama persis'."""
+    kondisi = "memang belum kami jual di Digiplus" if mode == "kompetitor" else "memang sedang kosong"
     alt_nama = alt_row["Nama_Lengkap"]
+    tier = clean(alt_row.get("Tier"))
+    kal = [f"Kak, {ref_nama} {kondisi}."]
+    kal.append(f"Tapi saya punya satu alternatif yang menarik untuk dipertimbangkan: {alt_nama}"
+               + (f", di kelas {tier}." if tier else "."))
     poin = [kecil(ringkas(p)) for p in (clean(alt_row.get(f"Kelebihan_{i}")) for i in (1, 2, 3)) if p]
-    chip = clean(alt_row.get("Chipset"))
-    rec = f"Ini {alt_nama}."
     if poin:
-        rec += f" Yang menonjol: {gabung_teks(poin)}."
+        kal.append(f"Yang menonjol, {gabung_teks(poin)}.")
+    chip = clean(alt_row.get("Chipset"))
     if chip:
-        rec += f" Chipsetnya {chip}."
+        kal.append(f"Dapurnya memakai {chip}.")
     target = clean(alt_row.get("Target_User"))
     if target:
-        rec += f" Produk ini biasanya cocok untuk {kecil(target)}."
+        kal.append(f"Produk ini biasanya diminati {kecil(target)}.")
     if selisih < -500000:
-        rec += f" Untuk harganya, ada selisih {rp(abs(selisih))} lebih hemat dibanding {ref_nama}."
+        kal.append(f"Dari sisi harga juga lebih hemat {rp(abs(selisih))} dibanding {ref_nama}.")
     elif selisih > 500000:
-        rec += f" Untuk harganya, ada selisih sekitar {rp(selisih)} dari {ref_nama}, dan menurut saya itu layak Kakak pertimbangkan."
+        kal.append(f"Ada selisih sekitar {rp(selisih)} dari {ref_nama}, dan menurut saya sepadan untuk dipertimbangkan.")
     else:
-        rec += f" Untuk harganya, berada di kisaran yang hampir sama dengan {ref_nama}."
-    rec += " Jadi walaupun produknya berbeda, kebutuhan Kakak tetap bisa kita bantu cari yang paling pas."
-
-    closing = ("Kalau Kakak berkenan, saya tunjukkan unitnya dan kita bandingkan langsung ya. "
-               "Boleh saya tahu, hal apa yang paling Kakak pentingkan di HP ini? Supaya saya bisa bantu arahkan lebih tepat.")
-    return {"opening": opening, "recommendation": rec, "closing": closing}
+        kal.append(f"Harganya juga berada di kisaran yang hampir sama dengan {ref_nama}.")
+    kal.append("Kalau Kakak berkenan, saya bisa tunjukkan unitnya langsung supaya kita bisa bandingkan bareng-bareng.")
+    return " ".join(kal)
 
 
 def tabel_banding(ref, alt):
@@ -604,144 +589,49 @@ pilihan_kompetitor = (
 pilihan_unik = sorted(pilihan_toko + pilihan_kompetitor)
 
 # ============================================
-# 4. HEADER, PENCARIAN, HASIL (UI)
+# 4. UI (struktur mengikuti referensi: judul > pencarian > banner > info acuan > tab alternatif)
 # ============================================
 def esc(x):
     return html.escape(str(x))
 
 
-def kategori_poin(teks):
-    """Label kartu hanya kalau teksnya jelas; selain itu 'KEY SELLING POINT'."""
-    t = teks.lower()
-    for label, pola in [("CAMERA", POLA["kamera"]), ("BATTERY", POLA["baterai"]),
-                        ("DISPLAY", POLA["layar"]), ("PERFORMANCE", POLA["performa"])]:
-        if any(re.search(p, t) for p in pola):
-            return label
-    return "KEY SELLING POINT"
-
-
-def gambar_produk(row):
-    for kolom in ["Image_URL", "Image", "Foto", "Product_Image"]:
-        u = clean(row.get(kolom))
-        if u and u.lower().startswith("http"):
-            return u
-    return None
-
-
 def render_header():
     st.markdown(
-        '<div class="dp-head"><div><div class="dp-brand">DIGIPLUS</div>'
-        '<div class="dp-title">SMART SALES ASSISTANT</div></div>'
-        '<div class="dp-tag">SALES ENABLEMENT PLATFORM</div></div>'
-        '<div class="dp-sub">Turn unavailable requests into selling opportunities.</div>',
+        '<div class="dp-top"><div class="dp-logo">D</div><div class="dp-title">Digiplus Smart Sales Assistant</div></div>'
+        '<div class="dp-sub">Produk kosong? Jangan Khawatir Kita Masih Bisa Jual Yang Lain!</div><div class="dp-sep"></div>',
         unsafe_allow_html=True)
 
 
-def render_status(nama, mode):
-    if mode == "toko":
-        label, desk, kelas = "CURRENTLY UNAVAILABLE", "Produk Digiplus yang sedang tidak tersedia", "dp-s-warn"
-    else:
-        label, desk, kelas = "NOT SOLD AT DIGIPLUS", "Produk kompetitor yang tidak kami jual", "dp-s-red"
-    st.markdown(
-        f'<div class="dp-status {kelas}"><span class="dp-dot"></span><div>'
-        f'<div class="dp-slabel">{label}</div><div class="dp-sname">{esc(nama)}</div>'
-        f'<div class="dp-sdesc">{desk}. Berikut alternatif paling relevan.</div></div></div>',
-        unsafe_allow_html=True)
-
-
-def render_showcase(ref, h, rank, terbatas):
+def render_alternatif(ref, h, mode):
+    """Isi satu tab: judul, harga+skor, kelebihan (kiri), ide probing (kanan)."""
     row = h["row"]
-    nama, skor, sel = row["Nama_Lengkap"], h["skor"], h["selisih"]
-    img = gambar_produk(row)
-    if img:
-        visual = f'<img class="dp-img" src="{esc(img)}" alt="{esc(nama)}">'
-    else:  # tanpa foto: kartu informasi yang rapi
-        visual = (f'<div class="dp-mono"><div class="dp-mono-b">{esc(row.get("Brand", ""))}</div>'
-                  f'<div class="dp-mono-c">{esc(clean(row.get("Chipset")) or "")}</div></div>')
-    if sel > 0:
-        badge = f'<span class="dp-badge dp-up">{esc(rp_selisih(sel))}</span>'
-    elif sel < 0:
-        badge = f'<span class="dp-badge dp-down">{esc(rp_selisih(sel))} lebih hemat</span>'
-    else:
-        badge = '<span class="dp-badge">Harga sama</span>'
-    chips = "".join(f'<span class="dp-chip">{esc(c)}</span>' for c in
-                    [clean(row.get("Tier")), clean(row.get("Chipset"))] if c)
-    target = clean(row.get("Target_User"))
-    judul = "BEST MATCH" if rank == 0 else f"ALTERNATIVE {rank + 1}"
-    st.markdown(
-        f'<div class="dp-card dp-hero"><div class="dp-label">{judul}</div>{visual}'
-        f'<div class="dp-name">{esc(nama)}</div>'
-        f'<div class="dp-price">{esc(rp(row["Harga"]))} {badge}</div>'
-        f'<div class="dp-chips">{chips}</div>'
-        f'<div class="dp-score"><div class="dp-score-t"><span>MATCH SCORE</span><b>{skor}/100</b></div>'
-        f'<div class="dp-bar"><div style="width:{skor}%"></div></div></div>'
-        + (f'<div class="dp-target">Target pengguna: {esc(target)}</div>' if target else "")
-        + (f'<div class="dp-note">Skor berdasarkan data terbatas.</div>' if terbatas else "")
-        + '</div>', unsafe_allow_html=True)
-
-
-def render_poin(row):
+    nama = row["Nama_Lengkap"]
+    sel = h["selisih"]
+    tanda = "+" if sel > 0 else ""
+    st.markdown(f'<div class="dp-alt">🎯 Alternatif: {esc(nama)}</div>'
+                f'<div class="dp-meta">💰 Harga: <b>{esc(rp(row["Harga"]))}</b> ({tanda}{esc(rp(sel))} dari {esc(ref["Nama_Lengkap"])})'
+                f' &nbsp;|&nbsp; 🎯 Skor Kecocokan: <b>{h["skor"]}/100</b></div>', unsafe_allow_html=True)
+    kiri, kanan = st.columns(2, gap="medium")
     poin = [clean(row.get(f"Kelebihan_{i}")) for i in (1, 2, 3)]
-    poin = [p for p in poin if p]
-    if not poin:
-        return
-    st.markdown('<div class="dp-h">Yang bisa kita jual</div>', unsafe_allow_html=True)
-    kartu = "".join(
-        f'<div class="dp-pt"><div class="dp-pn">{i:02d}</div><div class="dp-pk">{kategori_poin(p)}</div>'
-        f'<div class="dp-pv">{esc(p)}</div></div>' for i, p in enumerate(poin, 1))
-    st.markdown(f'<div class="dp-pts">{kartu}</div>', unsafe_allow_html=True)
-
-
-def render_alasan(h):
-    st.markdown('<div class="dp-h">Why this product</div>', unsafe_allow_html=True)
-    ringkas_alasan = h["alasan"][:4]
-    st.markdown('<div class="dp-why">' + "".join(
-        f'<div class="dp-w {"ok" if i == "✅" else "no"}"><i></i>{esc(t)}</div>' for i, t in ringkas_alasan)
-        + '</div>', unsafe_allow_html=True)
-    with st.expander("How was this score calculated?"):
-        st.caption("Skor = harga, tier, chipset, bentuk (lipat/biasa), brand, dan kemiripan target pengguna. "
-                   "Komponen tanpa data tidak dihitung, jadi skor tetap adil tapi bisa berbasis data terbatas.")
-        for i, t in h["alasan"]:
-            st.markdown(f"{i} {t}")
-
-
-def render_script(ref_nama, row, mode, sel):
-    s = buat_script(ref_nama, row, mode, sel)
-    st.markdown('<div class="dp-h">Sales script</div>', unsafe_allow_html=True)
-    st.caption("Tekan ikon copy di pojok kanan setiap bagian.")
-    for judul, kunci in [("OPENING", "opening"), ("RECOMMENDATION", "recommendation"), ("CLOSING", "closing")]:
-        st.markdown(f'<div class="dp-sl">{judul}</div>', unsafe_allow_html=True)
-        try:
-            st.code(s[kunci], language=None, wrap_lines=True)
-        except TypeError:
-            st.code(s[kunci], language=None)
-
-
-def render_banding(ref, row):
-    def baris(label, a, b):
-        return (f'<div class="dp-cl">{esc(label)}</div><div class="dp-cv">{esc(a)}</div>'
-                f'<div class="dp-cv dp-cb">{esc(b)}</div>')
-    ma, mb = ambil_mah(teks_produk(ref)), ambil_mah(teks_produk(row))
-    poin = lambda r: " • ".join(p for p in (clean(r.get(f"Kelebihan_{i}")) for i in (1, 2, 3)) if p) or "-"
-    isi = (baris("Harga", rp(ref["Harga"]), rp(row["Harga"]))
-           + baris("Tier", clean(ref.get("Tier")) or "-", clean(row.get("Tier")) or "-")
-           + baris("Chipset", clean(ref.get("Chipset")) or "-", clean(row.get("Chipset")) or "-")
-           + baris("Baterai", fmt_mah(ma) if ma else "-", fmt_mah(mb) if mb else "-")
-           + baris("Target", clean(ref.get("Target_User")) or "-", clean(row.get("Target_User")) or "-")
-           + baris("Selling points", poin(ref), poin(row)))
-    st.markdown('<div class="dp-h">Comparison</div>', unsafe_allow_html=True)
-    st.markdown(
-        f'<div class="dp-card dp-cmp"><div></div><div class="dp-ch">Diminta<br><b>{esc(ref["Nama_Lengkap"])}</b></div>'
-        f'<div class="dp-ch dp-cb">Alternatif<br><b>{esc(row["Nama_Lengkap"])}</b></div>{isi}</div>',
-        unsafe_allow_html=True)
+    isi = "".join(f'<div class="dp-pt"><span>✅</span><span>{esc(p)}</span></div>' for p in poin if p) \
+        or '<div class="dp-pt">Data kelebihan produk belum diisi.</div>'
+    with kiri:
+        st.markdown(f'<div class="dp-glass"><div class="dp-ch">📊 Kelebihan {esc(nama)}</div>{isi}</div>', unsafe_allow_html=True)
+    with kanan:
+        st.markdown(f'<div class="dp-glass dp-probe"><div class="dp-ch">💬 Ide Probing</div>'
+                    f'<div class="dp-script">{esc(buat_script(ref["Nama_Lengkap"], row, mode, sel))}</div></div>',
+                    unsafe_allow_html=True)
+    if any("belum lengkap" in t for _, t in h["alasan"]):
+        st.caption("Catatan: skor ini berdasarkan data yang terbatas (tier atau chipset belum lengkap).")
 
 
 def render_outcome(attempt_id, produk, mode):
-    st.markdown('<div class="dp-h">Hasil percakapan</div>', unsafe_allow_html=True)
+    st.markdown('<div class="dp-sep"></div>', unsafe_allow_html=True)
     sudah = st.session_state.get(f"outcome_{attempt_id}")
     if sudah:
-        st.markdown(f'<div class="dp-done">Tercatat: <b>{esc(sudah)}</b></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="dp-done">Hasil tercatat: <b>{esc(sudah)}</b></div>', unsafe_allow_html=True)
         return
+    st.caption("Hasil percakapan dengan customer (opsional)")
     c1, c2, c3 = st.columns(3)
     pilihan = None
     if c1.button("Customer tertarik", key="o1"):
@@ -759,18 +649,13 @@ def render_outcome(attempt_id, produk, mode):
 def render_pilot():
     total = hitung_total_attempt()
     pct = min(100, total / TARGET_ATTEMPTS * 100)
-    st.markdown(
-        f'<div class="dp-pilot"><div class="dp-pl">SWITCH-SELLING PILOT</div>'
-        f'<div class="dp-pn2">{total} <span>/ {TARGET_ATTEMPTS} ATTEMPTS</span></div>'
-        f'<div class="dp-bar"><div style="width:{pct:.0f}%"></div></div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="dp-pilot"><div class="dp-pl">SWITCH-SELLING PILOT</div>'
+                f'<div class="dp-pn2">{total} <span>/ {TARGET_ATTEMPTS} ATTEMPTS</span></div>'
+                f'<div class="dp-bar"><div style="width:{pct:.0f}%"></div></div></div>', unsafe_allow_html=True)
 
 
-# --- Sidebar: hanya pengaturan lanjutan (sembunyi secara default) ---
+# Sidebar minimal (tersembunyi): hanya sumber data dan refresh
 with st.sidebar:
-    st.markdown("### Pengaturan lanjutan")
-    max_selisih = st.slider("Toleransi selisih harga (Rp), produk toko kosong",
-                            500000, 5000000, 2500000, 500000)
-    top_n = st.slider("Jumlah alternatif", 2, 6, 4)
     st.caption(f"Sumber data produk: {sumber_data}")
     if catatan_data:
         st.warning(catatan_data)
@@ -781,6 +666,8 @@ with st.sidebar:
         st.rerun()
 
 render_header()
+st.markdown('<div class="dp-h2">🔎 HP apa yang sedang kosong?</div>'
+            '<div class="dp-it">Biar aku bantu cariin penggantinya lengkap dengan cara jualan 😊</div>', unsafe_allow_html=True)
 
 
 def search_hp(searchterm: str):
@@ -790,9 +677,11 @@ def search_hp(searchterm: str):
 
 
 pilihan_customer = st_searchbox(
-    search_hp, label="Search product or competitor",
-    placeholder="Search product or competitor...", key="search_hp",
-    default_options=pilihan_unik)
+    search_hp, label="🔎 Cari HP yang sedang kosong:", placeholder="Ketik atau pilih nama HP...",
+    key="search_hp", default_options=pilihan_unik)
+
+TOP_N = 4          # jumlah tab alternatif
+TOL_RP = 2500000   # toleransi harga dasar untuk produk toko (minimal 15% dari harga)
 
 if pilihan_customer:
     try:
@@ -810,52 +699,39 @@ if pilihan_customer:
             st.stop()
 
         harga_ref = float(ref["Harga"])
-        tol = max(float(max_selisih), 0.15 * harga_ref) if mode == "toko" else 0.3 * harga_ref
-        hasil = cari_alternatif(ref, df_toko, mode, tol, top_n, [])
+        tol = max(float(TOL_RP), 0.15 * harga_ref) if mode == "toko" else 0.3 * harga_ref
+        hasil = cari_alternatif(ref, df_toko, mode, tol, TOP_N, [])
 
         # Logging otomatis anonim: 1 attempt per pencarian (saat produk berubah)
         if st.session_state.get("last_logged_product") != pilihan_customer:
             st.session_state["attempt_id"] = uuid.uuid4().hex[:8]
             st.session_state["last_logged_product"] = pilihan_customer
-            st.session_state["alt_pilih"] = "Best Match"
             catat_attempt(st.session_state["attempt_id"], pilihan_customer, mode,
                           [h["row"]["Nama_Lengkap"] for h in hasil])
             hitung_total_attempt.clear()
 
-        render_status(pilihan_customer, mode)
-
         if not hasil:
-            st.info("Belum ada alternatif dalam rentang harga ini. Coba naikkan toleransi di Pengaturan lanjutan.")
+            st.info("Belum ada alternatif dalam rentang harga ini. Data produk mungkin perlu dilengkapi.")
         else:
-            labels = ["Best Match"] + [f"Alternative {i + 1}" for i in range(1, len(hasil))]
-            if st.session_state.get("alt_pilih") not in labels:
-                st.session_state["alt_pilih"] = labels[0]
-            try:
-                zona = st.container(key="showcase")
-            except TypeError:
-                zona = st.container()
-            with zona:
-                kiri, kanan = st.columns([2.2, 1])
-                with kanan:
-                    st.markdown('<div class="dp-label">SELECT</div>', unsafe_allow_html=True)
-                    st.radio("Pilih alternatif", labels, key="alt_pilih", label_visibility="collapsed")
-                idx = labels.index(st.session_state["alt_pilih"])
-                h = hasil[idx]
-                terbatas = any("belum lengkap" in t for _, t in h["alasan"])
-                with kiri:
-                    render_showcase(ref, h, idx, terbatas)
-            render_poin(h["row"])
-            render_alasan(h)
-            render_script(pilihan_customer, h["row"], mode, h["selisih"])
-            render_banding(ref, h["row"])
+            ket = "sedang kosong di Digiplus" if mode == "toko" else "tidak dijual di Digiplus"
+            st.markdown(f'<div class="dp-reco"><div class="dp-rl">🎯 REKOMENDASI SWITCH SELLING:</div>'
+                        f'<div class="dp-rt">Segera alihkan ke {esc(hasil[0]["row"]["Nama_Lengkap"])}!</div>'
+                        f'<div class="dp-rs">{esc(pilihan_customer)} {ket}.</div></div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="dp-ref"><div><div class="dp-rk">Harga Acuan</div><div class="dp-rv">{esc(rp(harga_ref))}</div></div>'
+                f'<div><div class="dp-rk">Tier</div><div class="dp-rv">{esc(clean(ref.get("Tier")) or "-")}</div></div>'
+                f'<div><div class="dp-rk">Brand</div><div class="dp-rv">{esc(clean(ref.get("Brand")) or "-")}</div></div></div>'
+                '<div class="dp-sep"></div>', unsafe_allow_html=True)
+            tabs = st.tabs([f"📱 {h['row']['Nama_Lengkap']}" for h in hasil])
+            for tab, h in zip(tabs, hasil):
+                with tab:
+                    render_alternatif(ref, h, mode)
             render_outcome(st.session_state.get("attempt_id"), pilihan_customer, mode)
     except Exception as e:  # jangan tampilkan error teknis ke sales
         print("UI error:", repr(e))
         st.error("Terjadi kendala saat menampilkan rekomendasi. Coba refresh data atau pilih produk lain.")
 else:
     st.session_state.pop("last_logged_product", None)
-    st.markdown('<div class="dp-empty">Ketik nama HP yang dicari customer.<br>'
-                '<span>Jangan berhenti di "tidak ada". Tunjukkan apa yang bisa dijual.</span></div>',
-                unsafe_allow_html=True)
+    st.info("👆 Ketik atau pilih nama HP di kolom pencarian untuk mulai.")
 
 render_pilot()
