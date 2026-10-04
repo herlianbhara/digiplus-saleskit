@@ -60,29 +60,16 @@ hr, .dp-sep {
 }
 
 /* ============ HEADER (centered, no logo) ============ */
-.dp-head {
-    text-align: center;
-    padding: 2.2rem 0 1rem;
-}
+.dp-head { text-align: center; padding: 2.2rem 0 1rem; }
 .dp-title {
-    font-size: 2.1rem;
-    font-weight: 700;
-    letter-spacing: -.01em;
-    margin: 0;
-    color: #FFFFFF;
-    line-height: 1.25;
+    font-size: 2.1rem; font-weight: 700; letter-spacing: -.01em;
+    margin: 0; color: #FFFFFF; line-height: 1.25;
 }
 .dp-sub {
-    font-size: 1rem;
-    font-weight: 400;
-    color: #B4C0D4;
-    margin: .75rem auto 0;
-    max-width: 620px;
-    line-height: 1.55;
+    font-size: 1rem; font-weight: 400; color: #B4C0D4;
+    margin: .75rem auto 0; max-width: 620px; line-height: 1.55;
 }
-.dp-sep {
-    margin: 1.6rem 0 1.4rem;
-}
+.dp-sep { margin: 1.6rem 0 1.4rem; }
 
 /* ============ SECTION HEADINGS ============ */
 .dp-h2 { font-size: 1.45rem; font-weight: 600; margin: 1.6rem 0 .2rem; color: #FFFFFF; }
@@ -116,6 +103,7 @@ hr, .dp-sep {
     border: 1px solid rgba(142,216,255,0.35);
     box-shadow: 0 0 35px rgba(77,166,255,0.15);
     margin: 1rem 0 1.3rem;
+    transition: all .3s ease;
 }
 .dp-rl { font-size: .74rem; letter-spacing: .2em; font-weight: 600; color: #8ED8FF; }
 .dp-rt { font-size: 1.35rem; font-weight: 700; color: #FFFFFF; margin-top: .15rem; }
@@ -151,12 +139,8 @@ hr, .dp-sep {
     padding: .8rem 1rem; border-radius: 12px; background: rgba(20,45,75,.25);
 }
 .dp-ask { margin: .4rem 0 1rem; }
-.dp-ask-title {
-    font-size: 1rem; font-weight: 500; color: #E8EEF8; margin-bottom: .2rem;
-}
-.dp-ask-sub {
-    font-size: .85rem; font-weight: 300; color: #8E9BB0; font-style: italic;
-}
+.dp-ask-title { font-size: 1rem; font-weight: 500; color: #E8EEF8; margin-bottom: .2rem; }
+.dp-ask-sub { font-size: .85rem; font-weight: 300; color: #8E9BB0; font-style: italic; }
 
 /* ============ PILOT ============ */
 .dp-pilot { margin-top: 2.4rem; }
@@ -181,37 +165,57 @@ div[data-baseweb="select"] > div {
     min-height: 3.2rem;
     transition: all .2s ease;
 }
-div[data-baseweb="select"] > div:hover {
-    border-color: rgba(143,233,255,.45) !important;
-}
+div[data-baseweb="select"] > div:hover { border-color: rgba(143,233,255,.45) !important; }
 div[data-baseweb="select"] > div:focus-within {
     border-color: #8FE9FF !important;
     box-shadow: 0 0 0 1px rgba(143,233,255,.5), 0 0 24px rgba(77,166,255,.28) !important;
 }
 
-/* ============ TABS ============ */
-.stTabs [data-baseweb="tab-list"] {
-    gap: .3rem; overflow-x: auto; flex-wrap: nowrap;
+/* ============ RADIO AS TABS ============ */
+[data-testid="stRadio"] > div[role="radiogroup"] {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: .3rem !important;
+    overflow-x: auto;
+    padding: 0 0 .5rem 0;
     border-bottom: 1px solid rgba(150,200,255,.12);
+    margin-bottom: 1.2rem;
+    scrollbar-width: thin;
 }
-.stTabs [data-baseweb="tab"] {
-    background: transparent; color: #8E9BB0; height: auto;
-    padding: .65rem 1.05rem; white-space: nowrap;
-    border-radius: 10px 10px 0 0; transition: all .2s ease;
+[data-testid="stRadio"] > div[role="radiogroup"]::-webkit-scrollbar { height: 4px; }
+[data-testid="stRadio"] > div[role="radiogroup"]::-webkit-scrollbar-thumb {
+    background: rgba(142,216,255,.2); border-radius: 2px;
 }
-.stTabs [data-baseweb="tab"]:hover {
-    color: #FFFFFF; background: rgba(77,166,255,.06);
+[data-testid="stRadio"] label {
+    background: transparent !important;
+    color: #8E9BB0 !important;
+    padding: .65rem 1.05rem !important;
+    white-space: nowrap;
+    border-radius: 10px 10px 0 0;
+    transition: all .2s ease;
+    cursor: pointer;
+    margin: 0 !important;
+    border: none !important;
+    min-height: auto !important;
 }
-.stTabs [aria-selected="true"] {
+[data-testid="stRadio"] label:hover {
     color: #FFFFFF !important;
-    background: rgba(77,166,255,.11);
+    background: rgba(77,166,255,.06) !important;
+}
+[data-testid="stRadio"] label > div[aria-hidden="true"] { display: none !important; }
+[data-testid="stRadio"] label:has(input:checked) {
+    color: #FFFFFF !important;
+    background: rgba(77,166,255,.11) !important;
     text-shadow: 0 0 14px rgba(77,166,255,.55);
+    box-shadow: inset 0 -2px 0 #4DA6FF, 0 0 12px rgba(77,166,255,.25);
 }
-.stTabs [data-baseweb="tab-highlight"] {
-    background: #4DA6FF !important; height: 2px !important;
-    box-shadow: 0 0 12px #4DA6FF;
+[data-testid="stRadio"] label p {
+    font-size: .9rem !important;
+    font-weight: 500 !important;
+    margin: 0 !important;
 }
-.stTabs [data-baseweb="tab-border"] { background: transparent !important; }
+[data-testid="stRadio"] > label:first-child { display: none !important; }
 
 /* ============ BUTTONS ============ */
 div.stButton > button {
@@ -237,9 +241,20 @@ div.stButton > button:hover {
     .dp-ref { gap: .5rem; }
     .dp-alt { font-size: 1.3rem; }
     .dp-reco .dp-rt { font-size: 1.15rem; }
+    [data-testid="stRadio"] label { padding: .55rem .85rem !important; }
+    [data-testid="stRadio"] label p { font-size: .82rem !important; }
 }
 </style>
 """, unsafe_allow_html=True)
+
+
+# ============================================
+# 0. OVERRIDE KHUSUS (untuk presentasi / pilot)
+# ============================================
+# Format: { "Nama Produk Dicari": "Nama Alternatif yang mau diprioritaskan" }
+OVERRIDE_TOP = {
+    "Poco X8 5G": "Xiaomi Redmi Note 17 Pro 5G",
+}
 
 
 # ============================================
@@ -470,7 +485,10 @@ def kecil(t):
     return t if len(t) < 2 or t[1].isupper() else t[0].lower() + t[1:]
 
 
-def buat_script(ref_nama, alt_row, mode, selisih):
+def buat_script(ref_nama, alt_row, mode, selisih, h=None):
+    """Script jualan persuasif 5-8 kalimat.
+    Struktur: Acknowledge → Bridge → Recommend → Value → Objection Handling → Price → Close.
+    Hanya memakai data produk, tidak mengarang."""
     kondisi = ("memang sedang kosong di Digiplus" if mode == "toko"
                else "memang belum kami jual di Digiplus")
     alt_nama = alt_row["Nama_Lengkap"]
@@ -480,41 +498,78 @@ def buat_script(ref_nama, alt_row, mode, selisih):
     poin = [clean(alt_row.get(f"Kelebihan_{i}")) for i in (1, 2, 3)]
     poin = [p for p in poin if p]
 
+    # 1. ACKNOWLEDGE
     kal = [f"Kak, {ref_nama} {kondisi}."]
 
+    # 2. BRIDGE
     if target:
         target_ringkas = target.split(",")[0].strip().lower()
         kal.append(
-            f"Tapi kalau Kakak sedang cari HP untuk {target_ringkas}, "
+            f"Kalau Kakak sedang cari HP untuk {target_ringkas}, "
             "saya punya satu alternatif menarik untuk dipertimbangkan."
         )
     else:
         kal.append("Tapi saya punya satu alternatif menarik untuk dipertimbangkan.")
 
+    # 3. RECOMMEND
     rekom = f"Produknya {alt_nama}"
     if tier:
         rekom += f", di kelas {tier}"
     kal.append(rekom + ".")
 
+    # 4. VALUE — kelebihan
     if poin:
         kal.append(f"Yang menonjol, {gabung_teks([kecil(ringkas(p)) for p in poin])}.")
 
-    if chip:
-        kal.append(f"Dapurnya memakai {chip}.")
+    # 5. SPEC SIMILARITY — cek dari alasan yang match
+    spec_match = []
+    chip_match = False
+    if h:
+        for ikon, teks in h.get("alasan", []):
+            if ikon != "✅":
+                continue
+            tl = teks.lower()
+            if "chipset" in tl:
+                spec_match.append(kecil(teks))
+                chip_match = True
+            elif "tier sama" in tl:
+                spec_match.append(kecil(teks))
 
+    if chip_match and spec_match:
+        kal.append(
+            f"Kebetulan spesifikasi intinya juga sejalan — {gabung_teks(spec_match[:2])}. "
+            "Jadi dari sisi kebutuhan, tidak jauh berbeda dengan yang Kakak cari."
+        )
+    elif spec_match:
+        kal.append(
+            f"Menariknya, {gabung_teks(spec_match[:2])} — "
+            "jadi secara kelas produk, sepadan dengan yang Kakak cari."
+        )
+    elif chip:
+        kal.append(f"Dari sisi prosesor, produk ini pakai {chip}.")
+
+    # 6. OBJECTION HANDLING — worth it / value framing
     if selisih < -500000:
-        kal.append(f"Dari sisi harga juga lebih hemat {rp(abs(selisih))} dibanding {ref_nama}.")
+        kal.append(
+            f"Bahkan harganya lebih hemat {rp(abs(selisih))} dibanding {ref_nama}, "
+            "jadi Kakak dapat spesifikasi yang sepadan dengan harga lebih ringan."
+        )
     elif selisih > 500000:
         kal.append(
             f"Memang ada selisih sekitar {rp(selisih)} dari {ref_nama}, "
-            "tapi menurut saya fitur dan value-nya sepadan untuk dipertimbangkan."
+            "tapi tambahan itu sepadan dengan peningkatan yang Kakak dapat, "
+            "bukan sekadar beda harga."
         )
     else:
-        kal.append(f"Harganya berada di kisaran yang hampir sama dengan {ref_nama}.")
+        kal.append(
+            f"Harganya di kisaran yang sama dengan {ref_nama}, "
+            "jadi tidak ada trade-off harga yang perlu dipikirkan."
+        )
 
+    # 7. CLOSE
     kal.append(
         "Kalau Kakak berkenan, saya bisa tunjukkan unitnya langsung "
-        "supaya kita bisa bandingkan bareng-bareng."
+        "supaya bisa kita bandingkan bareng-bareng."
     )
     return " ".join(kal)
 
@@ -761,7 +816,7 @@ def render_alternatif(ref, h, mode):
             unsafe_allow_html=True,
         )
     with kanan:
-        script = buat_script(ref["Nama_Lengkap"], row, mode, sel)
+        script = buat_script(ref["Nama_Lengkap"], row, mode, sel, h)
         st.markdown(
             f'<div class="dp-glass dp-probe">'
             f'<div class="dp-ch">💬 Ide Probing</div>'
@@ -821,7 +876,7 @@ def render_pilot():
 
 
 # ============================================
-# 5. SIDEBAR (tersembunyi, refresh via keyboard)
+# 5. SIDEBAR
 # ============================================
 with st.sidebar:
     st.caption(f"Sumber data produk: {sumber_data}")
@@ -898,16 +953,46 @@ if pilihan_customer:
         if not hasil:
             st.info("Belum ada alternatif dalam rentang harga ini. Data produk mungkin perlu dilengkapi.")
         else:
+            # ---- 1. OVERRIDE: pindahkan target ke posisi #1 kalau ada ----
+            target_override = OVERRIDE_TOP.get(pilihan_customer)
+            if target_override:
+                for i, h in enumerate(hasil):
+                    if h["row"]["Nama_Lengkap"] == target_override and i > 0:
+                        hasil.insert(0, hasil.pop(i))
+                        break
+
+            # ---- 2. SINKRONISASI state radio <-> index ----
+            ss_key = f"selected_alt_{pilihan_customer}"
+            radio_key = f"radio_{pilihan_customer}"
+
+            if radio_key in st.session_state:
+                label_dipilih = st.session_state[radio_key]
+                for i, h in enumerate(hasil):
+                    if f"📱 {h['row']['Nama_Lengkap']}" == label_dipilih:
+                        st.session_state[ss_key] = i
+                        break
+
+            if ss_key not in st.session_state:
+                st.session_state[ss_key] = 0
+
+            idx = min(st.session_state.get(ss_key, 0), len(hasil) - 1)
+            if idx < 0:
+                idx = 0
+            st.session_state[ss_key] = idx
+            h_selected = hasil[idx]
+
+            # ---- 3. KARTU REKOMENDASI (dinamis sesuai tab aktif) ----
             ket = "sedang kosong di Digiplus" if mode == "toko" else "tidak dijual di Digiplus"
             st.markdown(
                 f'<div class="dp-reco">'
                 f'<div class="dp-rl">🎯 REKOMENDASI SWITCH SELLING</div>'
-                f'<div class="dp-rt">Segera alihkan ke {esc(hasil[0]["row"]["Nama_Lengkap"])}!</div>'
+                f'<div class="dp-rt">Segera alihkan ke {esc(h_selected["row"]["Nama_Lengkap"])}!</div>'
                 f'<div class="dp-rs">{esc(pilihan_customer)} {ket}.</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
 
+            # ---- 4. STRIP ACUAN ----
             st.markdown(
                 f'<div class="dp-ref">'
                 f'<div><div class="dp-rk">Harga Acuan</div>'
@@ -921,10 +1006,19 @@ if pilihan_customer:
                 unsafe_allow_html=True,
             )
 
-            tabs = st.tabs([f"📱 {h['row']['Nama_Lengkap']}" for h in hasil])
-            for tab, h in zip(tabs, hasil):
-                with tab:
-                    render_alternatif(ref, h, mode)
+            # ---- 5. TAB SELECTOR (radio horizontal, styled like tabs) ----
+            labels = [f"📱 {h['row']['Nama_Lengkap']}" for h in hasil]
+            st.radio(
+                "Pilih alternatif",
+                labels,
+                index=idx,
+                horizontal=True,
+                key=radio_key,
+                label_visibility="collapsed",
+            )
+
+            # ---- 6. KONTEN UNTUK ALTERNATIF TERPILIH ----
+            render_alternatif(ref, h_selected, mode)
 
             render_outcome(st.session_state.get("attempt_id"), pilihan_customer, mode)
     except Exception as e:
