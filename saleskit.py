@@ -6,6 +6,7 @@ import html
 from datetime import datetime, timezone, timedelta
 
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 from streamlit_searchbox import st_searchbox
 
@@ -27,27 +28,32 @@ html, body, .stApp, button, input, textarea, [class*="st-"] {
     font-family: 'Roboto', Arial, sans-serif !important;
 }
 
-/* ============ LOCK HORIZONTAL SCROLL ============ */
+/* ============ LOCK HORIZONTAL SCROLL (pakai clip, bukan hidden) ============ */
 html, body {
-    overflow-x: hidden !important;
+    overflow-x: hidden;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
     max-width: 100vw;
 }
 .stApp {
-    overflow-x: hidden !important;
+    overflow-x: hidden;
+    overflow-x: clip !important;
     max-width: 100vw;
 }
 [data-testid="stAppViewContainer"] {
-    overflow-x: hidden !important;
+    overflow-x: hidden;
+    overflow-x: clip !important;
 }
 [data-testid="stMain"] {
-    overflow-x: hidden !important;
+    overflow-x: hidden;
+    overflow-x: clip !important;
 }
 .block-container {
-    overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100%;
 }
 section.main {
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
 }
 
 /* ============ HIDE STREAMLIT CHROME ============ */
@@ -82,7 +88,7 @@ hr, .dp-sep {
     margin: 1.2rem 0;
 }
 
-/* ============ HEADER (centered, no logo) ============ */
+/* ============ HEADER ============ */
 .dp-head { text-align: center; padding: 2.2rem 0 1rem; }
 .dp-title {
     font-size: 2.1rem; font-weight: 700; letter-spacing: -.01em;
@@ -120,7 +126,7 @@ hr, .dp-sep {
     overflow-wrap: anywhere;
 }
 
-/* ============ RECOMMENDATION CARD — BLUE ============ */
+/* ============ RECOMMENDATION CARD ============ */
 .dp-reco {
     display: block; padding: 1rem 1.25rem; border-radius: 14px;
     backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
@@ -204,6 +210,28 @@ div[data-baseweb="select"] > div:focus-within {
     box-shadow: 0 0 0 1px rgba(143,233,255,.5), 0 0 24px rgba(77,166,255,.28) !important;
 }
 
+/* ============ HIDE RADIO BULATAN — AGRESIF ============ */
+[data-testid="stRadio"] label > div:first-child,
+[data-testid="stRadio"] label > div[role="presentation"],
+[data-testid="stRadio"] [data-baseweb="radio"] > div:first-child,
+[data-testid="stRadio"] [data-baseweb="radio"] > div[role="presentation"],
+[data-testid="stRadio"] label input[type="radio"],
+[data-testid="stRadio"] label [data-testid="stMarkdownContainer"] ~ div {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 /* ============ RADIO AS TABS ============ */
 [data-testid="stRadio"] > div[role="radiogroup"] {
     display: flex !important;
@@ -233,12 +261,14 @@ div[data-baseweb="select"] > div:focus-within {
     margin: 0 !important;
     border: none !important;
     min-height: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0 !important;
 }
 [data-testid="stRadio"] label:hover {
     color: #FFFFFF !important;
     background: rgba(77,166,255,.06) !important;
 }
-[data-testid="stRadio"] label > div[aria-hidden="true"] { display: none !important; }
 [data-testid="stRadio"] label:has(input:checked) {
     color: #FFFFFF !important;
     background: rgba(77,166,255,.11) !important;
@@ -289,9 +319,55 @@ div.stButton > button:hover {
 
 
 # ============================================
+# JS SAFETY NET — reset scroll di semua container
+# ============================================
+components.html("""
+<script>
+(function() {
+    const doc = window.parent.document;
+    const resetScroll = () => {
+        const targets = [
+            doc.documentElement,
+            doc.body,
+            doc.querySelector('.stApp'),
+            doc.querySelector('[data-testid="stAppViewContainer"]'),
+            doc.querySelector('[data-testid="stMain"]'),
+            doc.querySelector('[data-testid="stVerticalBlock"]')
+        ];
+        targets.forEach(el => {
+            if (el) {
+                el.scrollLeft = 0;
+                el.scrollTo && el.scrollTo({ left: 0, behavior: 'instant' });
+            }
+        });
+    };
+    // Reset saat load
+    resetScroll();
+    // Reset setiap ada interaksi apapun di halaman
+    doc.addEventListener('click', (e) => {
+        if (e.target && e.target.closest && e.target.closest('[data-testid="stRadio"]')) {
+            setTimeout(resetScroll, 30);
+            setTimeout(resetScroll, 150);
+            setTimeout(resetScroll, 400);
+        }
+    }, true);
+    // Reset juga saat scroll di root (kalau user somehow geser)
+    doc.addEventListener('scroll', (e) => {
+        if (e.target === doc.documentElement || e.target === doc.body) {
+            resetScroll();
+        }
+    }, true);
+    // MutationObserver untuk handle rerun Streamlit
+    const observer = new MutationObserver(() => resetScroll());
+    observer.observe(doc.body, { childList: true, subtree: false });
+})();
+</script>
+""", height=0)
+
+
+# ============================================
 # 0. OVERRIDE KHUSUS (untuk presentasi / pilot)
 # ============================================
-# Format: { "Nama Produk Dicari": "Nama Alternatif yang mau diprioritaskan" }
 OVERRIDE_TOP = {
     "Poco X8 5G": "Xiaomi Redmi Note 17 Pro 5G",
 }
@@ -526,9 +602,6 @@ def kecil(t):
 
 
 def buat_script(ref_nama, alt_row, mode, selisih, h=None):
-    """Script jualan persuasif 5-8 kalimat.
-    Struktur: Acknowledge → Bridge → Recommend → Value → Objection Handling → Price → Close.
-    Hanya memakai data produk, tidak mengarang."""
     kondisi = ("memang sedang kosong di Digiplus" if mode == "toko"
                else "memang belum kami jual di Digiplus")
     alt_nama = alt_row["Nama_Lengkap"]
@@ -538,10 +611,8 @@ def buat_script(ref_nama, alt_row, mode, selisih, h=None):
     poin = [clean(alt_row.get(f"Kelebihan_{i}")) for i in (1, 2, 3)]
     poin = [p for p in poin if p]
 
-    # 1. ACKNOWLEDGE
     kal = [f"Kak, {ref_nama} {kondisi}."]
 
-    # 2. BRIDGE
     if target:
         target_ringkas = target.split(",")[0].strip().lower()
         kal.append(
@@ -551,17 +622,14 @@ def buat_script(ref_nama, alt_row, mode, selisih, h=None):
     else:
         kal.append("Tapi saya punya satu alternatif menarik untuk dipertimbangkan.")
 
-    # 3. RECOMMEND
     rekom = f"Produknya {alt_nama}"
     if tier:
         rekom += f", di kelas {tier}"
     kal.append(rekom + ".")
 
-    # 4. VALUE — kelebihan
     if poin:
         kal.append(f"Yang menonjol, {gabung_teks([kecil(ringkas(p)) for p in poin])}.")
 
-    # 5. SPEC SIMILARITY — cek dari alasan yang match
     spec_match = []
     chip_match = False
     if h:
@@ -588,7 +656,6 @@ def buat_script(ref_nama, alt_row, mode, selisih, h=None):
     elif chip:
         kal.append(f"Dari sisi prosesor, produk ini pakai {chip}.")
 
-    # 6. OBJECTION HANDLING — worth it / value framing
     if selisih < -500000:
         kal.append(
             f"Bahkan harganya lebih hemat {rp(abs(selisih))} dibanding {ref_nama}, "
@@ -606,7 +673,6 @@ def buat_script(ref_nama, alt_row, mode, selisih, h=None):
             "jadi tidak ada trade-off harga yang perlu dipikirkan."
         )
 
-    # 7. CLOSE
     kal.append(
         "Kalau Kakak berkenan, saya bisa tunjukkan unitnya langsung "
         "supaya bisa kita bandingkan bareng-bareng."
@@ -993,7 +1059,6 @@ if pilihan_customer:
         if not hasil:
             st.info("Belum ada alternatif dalam rentang harga ini. Data produk mungkin perlu dilengkapi.")
         else:
-            # ---- 1. OVERRIDE: pindahkan target ke posisi #1 kalau ada ----
             target_override = OVERRIDE_TOP.get(pilihan_customer)
             if target_override:
                 for i, h in enumerate(hasil):
@@ -1001,7 +1066,6 @@ if pilihan_customer:
                         hasil.insert(0, hasil.pop(i))
                         break
 
-            # ---- 2. SINKRONISASI state radio <-> index ----
             ss_key = f"selected_alt_{pilihan_customer}"
             radio_key = f"radio_{pilihan_customer}"
 
@@ -1021,7 +1085,6 @@ if pilihan_customer:
             st.session_state[ss_key] = idx
             h_selected = hasil[idx]
 
-            # ---- 3. KARTU REKOMENDASI (dinamis sesuai tab aktif) ----
             ket = "sedang kosong di Digiplus" if mode == "toko" else "tidak dijual di Digiplus"
             st.markdown(
                 f'<div class="dp-reco">'
@@ -1032,7 +1095,6 @@ if pilihan_customer:
                 unsafe_allow_html=True,
             )
 
-            # ---- 4. STRIP ACUAN ----
             st.markdown(
                 f'<div class="dp-ref">'
                 f'<div><div class="dp-rk">Harga Acuan</div>'
@@ -1046,7 +1108,6 @@ if pilihan_customer:
                 unsafe_allow_html=True,
             )
 
-            # ---- 5. TAB SELECTOR (radio horizontal, styled like tabs) ----
             labels = [f"📱 {h['row']['Nama_Lengkap']}" for h in hasil]
             st.radio(
                 "Pilih alternatif",
@@ -1057,7 +1118,6 @@ if pilihan_customer:
                 label_visibility="collapsed",
             )
 
-            # ---- 6. KONTEN UNTUK ALTERNATIF TERPILIH ----
             render_alternatif(ref, h_selected, mode)
 
             render_outcome(st.session_state.get("attempt_id"), pilihan_customer, mode)
