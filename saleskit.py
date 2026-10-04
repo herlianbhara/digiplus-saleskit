@@ -365,6 +365,36 @@ def tabel_banding(ref, alt):
     baris = [b for b in baris if not (b[1] == "-" and b[2] == "-")]
     df = pd.DataFrame(baris, columns=["Spesifikasi", ref["Nama_Lengkap"], alt["Nama_Lengkap"]])
     return df.set_index("Spesifikasi")
+SKIP_SHEETS = ["Panduan", "Master", "Notes", "Template", "Sheet1", "Log"]
+
+
+def baca_worksheet(ws):
+    """Ubah 1 worksheet Google Sheets jadi DataFrame (baris 1 = header)."""
+    nilai = ws.get_all_values(value_render_option="UNFORMATTED_VALUE")
+    if len(nilai) < 2:
+        return pd.DataFrame()
+    header = [str(h).strip() for h in nilai[0]]
+    lebar = len(header)
+    baris = [(list(r) + [""] * (lebar - len(r)))[:lebar] for r in nilai[1:]]
+    df = pd.DataFrame(baris, columns=header)
+    return df.replace("", pd.NA)
+
+
+def susun_data(sheets_dict):
+    """Pisahkan sheet Kompetitor dari sheet produk toko, lalu bersihkan."""
+    sheets_dict = dict(sheets_dict)
+    df_kompetitor = sheets_dict.pop("Kompetitor", pd.DataFrame())
+    valid = {n: s for n, s in sheets_dict.items()
+             if n not in SKIP_SHEETS and not s.empty and "Brand" in s.columns}
+    if not valid:
+        raise ValueError("Belum ada data produk toko.")
+    df_toko = pd.concat(valid.values(), ignore_index=True)
+    df_toko = df_toko.dropna(subset=["Brand", "Model"])
+    df_toko["Harga"] = pd.to_numeric(df_toko["Harga"], errors="coerce")
+    if not df_kompetitor.empty:
+        df_kompetitor = df_kompetitor.dropna(subset=["Brand", "Model"])
+        df_kompetitor["Harga"] = pd.to_numeric(df_kompetitor["Harga"], errors="coerce")
+    return df_toko, df_kompetitor
 # <<< LOGIKA <<<
 
 # ============================================
@@ -457,25 +487,52 @@ def hitung_total_attempt():
 # ============================================
 # 3. LOAD DATA
 # ============================================
+@st.cache_resource
+def get_data_book():
+    """Buka spreadsheet data produk. Pakai [gsheets] data_spreadsheet_id kalau ada,
+    kalau tidak pakai spreadsheet yang sama dengan Log."""
+    try:
+        import gspread
+        from google.oauth2.service_account import Credentials
+
+        creds = Credentials.from_service_account_info(
+            dict(st.secrets["gcp_service_account"]),
+            scopes=[
+                "https://www.googleapis.com/auth/spreadsheets",
+                "https://www.googleapis.com/auth/drive",
+            ],
+        )
+        gc = gspread.authorize(creds)
+        sid = st.secrets["gsheets"].get("data_spreadsheet_id") or st.secrets["gsheets"]["spreadsheet_id"]
+        return gc.open_by_key(sid), None
+    except Exception as e:
+        return None, str(e)
+
+
 @st.cache_data(ttl=60)
 def load_data():
+    """Return (df_toko, df_kompetitor, sumber, catatan).
+    Utama: Google Sheets. Cadangan: data_hp.xlsx (dengan catatan peringatan)."""
+    catatan = None
+    book, err = get_data_book()
+    if book is not None:
+        try:
+            sheets = {ws.title: baca_worksheet(ws) for ws in book.worksheets()}
+            df_toko, df_komp = susun_data(sheets)
+            return df_toko, df_komp, "Google Sheets", None
+        except ValueError:
+            catatan = "Google Sheets belum berisi data produk (tab Samsung, Iphone, dst). Sementara memakai data_hp.xlsx."
+        except Exception as e:
+            catatan = f"Gagal membaca Google Sheets ({e}). Sementara memakai data_hp.xlsx, harga bisa jadi bukan yang terbaru."
     sheets_dict = pd.read_excel("data_hp.xlsx", sheet_name=None)
-    df_kompetitor = sheets_dict.pop("Kompetitor", pd.DataFrame())
-
-    skip_sheets = ["Panduan", "Master", "Notes", "Template", "Sheet1"]
-    valid_sheets = {n: s for n, s in sheets_dict.items() if n not in skip_sheets}
-
-    df_toko = pd.concat(valid_sheets.values(), ignore_index=True)
-    df_toko = df_toko.dropna(subset=["Brand", "Model"])
-    if not df_kompetitor.empty:
-        df_kompetitor = df_kompetitor.dropna(subset=["Brand", "Model"])
-    return df_toko, df_kompetitor
+    df_toko, df_komp = susun_data(sheets_dict)
+    return df_toko, df_komp, "Excel (data_hp.xlsx)", catatan
 
 
 try:
-    df_toko, df_kompetitor = load_data()
+    df_toko, df_kompetitor, sumber_data, catatan_data = load_data()
 except FileNotFoundError:
-    st.error("⚠️ File 'data_hp.xlsx' tidak ditemukan!")
+    st.error("⚠️ Data produk tidak ditemukan. Isi tab produk di Google Sheets atau upload data_hp.xlsx.")
     st.stop()
 except Exception as e:
     st.error(f"⚠️ Error baca Excel: {e}")
@@ -505,6 +562,10 @@ with st.sidebar:
         st.caption("⚠️ Google Sheets belum terhubung, log disimpan sementara di file lokal.")
     else:
         st.caption("✅ Log tersimpan otomatis ke Google Sheets.")
+
+    st.caption(f"📦 Sumber data produk: **{sumber_data}**")
+    if catatan_data:
+        st.warning(catatan_data)
 
     st.markdown("---")
     with st.expander("⚙️ Pengaturan lanjutan"):
