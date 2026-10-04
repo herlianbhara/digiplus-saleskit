@@ -11,7 +11,7 @@ from streamlit_searchbox import st_searchbox
 
 st.set_page_config(
     page_title="Digiplus Smart Sales Assistant",
-    page_icon="D",
+    page_icon="📱",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -27,6 +27,22 @@ html, body, .stApp, button, input, textarea, [class*="st-"] {
     font-family: 'Roboto', Arial, sans-serif !important;
 }
 
+/* ============ HIDE STREAMLIT CHROME ============ */
+header[data-testid="stHeader"] { display: none !important; }
+[data-testid="stToolbar"] { display: none !important; }
+[data-testid="stDecoration"] { display: none !important; }
+[data-testid="stSidebarCollapsedControl"] { display: none !important; }
+[data-testid="stSidebarNav"] { display: none !important; }
+[data-testid="stStatusWidget"] { display: none !important; }
+[data-testid="stAppDeployButton"] { display: none !important; }
+[data-testid="manage-app-button"] { display: none !important; }
+.stDeployButton { display: none !important; }
+[class*="viewerBadge"] { display: none !important; }
+[class*="ViewerBadge"] { display: none !important; }
+#MainMenu { visibility: hidden; display: none !important; }
+footer { visibility: hidden; display: none !important; }
+[data-testid="stToolbarActions"] { display: none !important; }
+
 /* ============ BASE ============ */
 .stApp {
     background:
@@ -35,37 +51,37 @@ html, body, .stApp, button, input, textarea, [class*="st-"] {
         linear-gradient(180deg, #050812, #080C16 55%, #0B1220);
     color: #F3F6FB;
 }
-header[data-testid="stHeader"] { background: transparent; }
-#MainMenu, footer { visibility: hidden; }
-.block-container { max-width: 1060px; padding: 2rem 1rem 4rem; }
+.block-container { max-width: 1060px; padding: 1rem 1rem 4rem; }
+
 hr, .dp-sep {
     border: none; height: 1px;
     background: linear-gradient(90deg, transparent, rgba(150,200,255,.22), transparent);
     margin: 1.2rem 0;
 }
 
-/* ============ HEADER (open, no enclosing glow) ============ */
-.dp-top { display: flex; align-items: center; gap: .9rem; }
-.dp-logo {
-    width: 42px; height: 42px; border-radius: 11px;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 1.3rem; letter-spacing: -.02em;
-    background: linear-gradient(145deg, rgba(77,166,255,.25), rgba(255,255,255,.04));
-    border: 1px solid rgba(150,200,255,.30);
-    box-shadow: 0 0 22px rgba(77,166,255,.22);
-    position: relative;
-}
-.dp-logo::after {
-    content: ""; position: absolute; right: -3px; bottom: -3px;
-    width: 9px; height: 9px; border-radius: 50%; background: #E31E24;
+/* ============ HEADER (centered, no logo) ============ */
+.dp-head {
+    text-align: center;
+    padding: 2.2rem 0 1rem;
 }
 .dp-title {
-    font-size: 2rem; font-weight: 700; letter-spacing: -.01em;
-    margin: 0; color: #FFFFFF;
+    font-size: 2.1rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    margin: 0;
+    color: #FFFFFF;
+    line-height: 1.25;
 }
 .dp-sub {
-    font-size: .98rem; font-weight: 400; color: #B4C0D4;
-    margin: .5rem 0 0;
+    font-size: 1rem;
+    font-weight: 400;
+    color: #B4C0D4;
+    margin: .75rem auto 0;
+    max-width: 620px;
+    line-height: 1.55;
+}
+.dp-sep {
+    margin: 1.6rem 0 1.4rem;
 }
 
 /* ============ SECTION HEADINGS ============ */
@@ -206,7 +222,10 @@ div.stButton > button:hover {
 
 /* ============ MOBILE ============ */
 @media (max-width: 768px) {
-    .dp-title { font-size: 1.45rem; }
+    .block-container { padding: 0.5rem 0.9rem 4rem; }
+    .dp-head { padding: 1.4rem 0 0.8rem; }
+    .dp-title { font-size: 1.5rem; }
+    .dp-sub { font-size: .92rem; margin-top: .5rem; }
     .dp-rv { font-size: 1.15rem; }
     .dp-ref { gap: .5rem; }
     .dp-alt { font-size: 1.3rem; }
@@ -343,10 +362,8 @@ def adalah_lipat(nama):
 
 
 def hitung_kecocokan(ref, alt, mode, tol):
-    """Skor 0-100 dengan alasan transparan."""
     dapat, maks, alasan = 0.0, 0, []
 
-    # Harga
     selisih = float(alt["Harga"]) - float(ref["Harga"])
     maks += W_HARGA
     p = W_HARGA * max(0.0, 1 - abs(selisih) / tol) if tol > 0 else 0.0
@@ -356,7 +373,6 @@ def hitung_kecocokan(ref, alt, mode, tol):
     else:
         alasan.append(("➖", f"Selisih harga cukup jauh ({rp_selisih(selisih)})"))
 
-    # Tier
     maks += W_TIER
     lt_ref, lt_alt = level_tier(ref.get("Tier")), level_tier(alt.get("Tier"))
     t_ref, t_alt = clean(ref.get("Tier")) or "-", clean(alt.get("Tier")) or "-"
@@ -371,7 +387,6 @@ def hitung_kecocokan(ref, alt, mode, tol):
     else:
         alasan.append(("➖", f"Beda tier cukup jauh ({t_alt} vs {t_ref})"))
 
-    # Chipset
     maks += W_CHIPSET
     c_ref, c_alt = clean(ref.get("Chipset")), clean(alt.get("Chipset"))
     lc_ref, lc_alt = level_chipset(c_ref), level_chipset(c_alt)
@@ -390,14 +405,12 @@ def hitung_kecocokan(ref, alt, mode, tol):
         else:
             alasan.append(("➖", f"Chipset beda kelas ({c_alt} vs {c_ref})"))
 
-    # Brand (khusus mode toko)
     if mode == "toko":
         maks += W_BRAND
         if str(alt.get("Brand")) == str(ref.get("Brand")):
             dapat += W_BRAND
             alasan.append(("✅", f"Brand sama ({alt.get('Brand')})"))
 
-    # Bentuk lipat
     lipat_ref = adalah_lipat(ref.get("Nama_Lengkap"))
     lipat_alt = adalah_lipat(alt.get("Nama_Lengkap"))
     if lipat_ref or lipat_alt:
@@ -408,7 +421,6 @@ def hitung_kecocokan(ref, alt, mode, tol):
         else:
             alasan.append(("➖", "Bentuk berbeda (HP lipat vs HP biasa)"))
 
-    # Positioning (Target_User)
     stop = {"dan", "atau", "yang", "untuk", "hp", "suka", "pengguna"}
     ta = set(re.findall(r"[a-z]+", (clean(ref.get("Target_User")) or "").lower())) - stop
     tb = set(re.findall(r"[a-z]+", (clean(alt.get("Target_User")) or "").lower())) - stop
@@ -452,8 +464,6 @@ def kecil(t):
 
 
 def buat_script(ref_nama, alt_row, mode, selisih):
-    """Script jualan 5-7 kalimat: Acknowledge → Bridge → Recommend → Value → Price → Close.
-    Hanya memakai data produk. Tidak ada klaim 'sama persis'."""
     kondisi = ("memang sedang kosong di Digiplus" if mode == "toko"
                else "memang belum kami jual di Digiplus")
     alt_nama = alt_row["Nama_Lengkap"]
@@ -518,7 +528,7 @@ def tabel_banding(ref, alt):
 
 
 # ============================================
-# 2. LOGGING (anonymous — tanpa nama sales)
+# 2. LOGGING
 # ============================================
 WIB = timezone(timedelta(hours=7))
 LOG_HEADER = [
@@ -549,7 +559,6 @@ def get_log_sheet():
         except gspread.WorksheetNotFound:
             ws = sh.add_worksheet(title="Log", rows=1000, cols=len(LOG_HEADER))
         if ws.row_values(1) != LOG_HEADER:
-            # rapikan header lama (yang punya kolom "Sales") ke header baru
             ws.update(range_name="A1", values=[LOG_HEADER + [""]])
         return ws, None
     except Exception as e:
@@ -701,11 +710,10 @@ def esc(x):
 
 def render_header():
     st.markdown(
-        '<div class="dp-top">'
-        '<div class="dp-logo">D</div>'
+        '<div class="dp-head">'
         '<div class="dp-title">Digiplus Smart Sales Assistant</div>'
-        '</div>'
         '<div class="dp-sub">Produk kosong? Jangan Khawatir Kita Masih Bisa Jual Yang Lain!</div>'
+        '</div>'
         '<div class="dp-sep"></div>',
         unsafe_allow_html=True,
     )
@@ -797,7 +805,7 @@ def render_pilot():
 
 
 # ============================================
-# 5. SIDEBAR minimal
+# 5. SIDEBAR (tetap ada, tapi tersembunyi; refresh via keyboard)
 # ============================================
 with st.sidebar:
     st.caption(f"Sumber data produk: {sumber_data}")
