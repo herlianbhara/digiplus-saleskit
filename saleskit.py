@@ -150,6 +150,13 @@ hr, .dp-sep {
     border: 1px solid rgba(142,216,255,.35); color: #8ED8FF;
     padding: .8rem 1rem; border-radius: 12px; background: rgba(20,45,75,.25);
 }
+.dp-ask { margin: .4rem 0 1rem; }
+.dp-ask-title {
+    font-size: 1rem; font-weight: 500; color: #E8EEF8; margin-bottom: .2rem;
+}
+.dp-ask-sub {
+    font-size: .85rem; font-weight: 300; color: #8E9BB0; font-style: italic;
+}
 
 /* ============ PILOT ============ */
 .dp-pilot { margin-top: 2.4rem; }
@@ -772,19 +779,28 @@ def render_outcome(attempt_id, produk, mode):
     sudah = st.session_state.get(f"outcome_{attempt_id}")
     if sudah:
         st.markdown(
-            f'<div class="dp-done">Hasil tercatat: <b>{esc(sudah)}</b></div>',
+            f'<div class="dp-done">✅ Hasil tercatat: <b>{esc(sudah)}</b></div>',
             unsafe_allow_html=True,
         )
         return
-    st.caption("Hasil percakapan dengan customer (opsional)")
+
+    st.markdown(
+        '<div class="dp-ask">'
+        '<div class="dp-ask-title">📝 Hasil percakapan dengan customer</div>'
+        '<div class="dp-ask-sub">Tolong isi hasilnya untuk perbaikan kami ke depannya 🙏</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
     c1, c2, c3 = st.columns(3)
     pilihan = None
-    if c1.button("Customer tertarik", key="o1"):
-        pilihan = "Tertarik lihat alternatif"
-    if c2.button("Switch berhasil / terjual", key="o2"):
-        pilihan = "Switch berhasil"
-    if c3.button("Customer tidak jadi", key="o3"):
-        pilihan = "Tidak jadi"
+    if c1.button("🤔 Tertarik, tapi masih ragu", key="o1", use_container_width=True):
+        pilihan = "Tertarik namun masih ragu"
+    if c2.button("🎉 Berhasil menjual", key="o2", use_container_width=True):
+        pilihan = "Berhasil menjual"
+    if c3.button("😔 Belum berhasil", key="o3", use_container_width=True):
+        pilihan = "Belum berhasil"
+
     if pilihan:
         catat_outcome(attempt_id, produk, mode, pilihan)
         st.session_state[f"outcome_{attempt_id}"] = pilihan
@@ -805,7 +821,7 @@ def render_pilot():
 
 
 # ============================================
-# 5. SIDEBAR (tetap ada, tapi tersembunyi; refresh via keyboard)
+# 5. SIDEBAR (tersembunyi, refresh via keyboard)
 # ============================================
 with st.sidebar:
     st.caption(f"Sumber data produk: {sumber_data}")
