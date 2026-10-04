@@ -9,39 +9,74 @@ import streamlit as st
 import pandas as pd
 from streamlit_searchbox import st_searchbox
 
-st.set_page_config(
-    page_title="Digiplus Smart Sales Assistant",
-    page_icon="🔁",
-    layout="centered",
-    initial_sidebar_state="collapsed",
-)
+st.set_page_config(page_title="Digiplus Smart Sales Assistant", page_icon="D",
+                   layout="wide", initial_sidebar_state="collapsed")
 
-# ============================================
-# TAMPILAN (CSS) - ganti #6366F1 kalau mau ganti warna aksen
-# ============================================
-st.markdown(
-    """
+# Warna aksen merah Digiplus: ubah #E31E24 di bawah kalau perlu
+st.markdown("""
 <style>
-.block-container {padding-top: 2rem; padding-bottom: 4rem;}
-.ssa-hero {border-left: 5px solid #6366F1; background: rgba(99,102,241,.12);
-           border-radius: 14px; padding: 16px 18px; margin: 8px 0 12px 0;}
-.ssa-label {font-size: .85rem; opacity: .75; margin-bottom: 2px;}
-.ssa-name {font-size: 1.6rem; font-weight: 700; line-height: 1.25;}
-.ssa-price {font-size: 1.15rem; margin-top: 6px;}
-.ssa-badge {display: inline-block; padding: 2px 10px; border-radius: 999px;
-            font-size: .85rem; font-weight: 600; margin-left: 6px;}
-.ssa-up {background: rgba(245,158,11,.2); color: #F59E0B;}
-.ssa-down {background: rgba(34,197,94,.2); color: #22C55E;}
-.ssa-same {background: rgba(148,163,184,.25);}
-.ssa-bar {height: 10px; border-radius: 999px; background: rgba(148,163,184,.3);
-          margin-top: 12px; overflow: hidden;}
-.ssa-bar > div {height: 100%; background: linear-gradient(90deg, #6366F1, #22C55E);}
-.ssa-score {font-size: .85rem; opacity: .8; margin-top: 4px;}
-div.stButton > button {width: 100%; min-height: 3rem; border-radius: 12px;}
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+html, body, .stApp, button, input, textarea, [class*="st-"] {font-family: 'Roboto', Arial, sans-serif !important;}
+.stApp {background: radial-gradient(1100px 520px at 85% -10%, rgba(227,30,36,.12), transparent 60%), #06080D; color: #F5F5F5;}
+header[data-testid="stHeader"] {background: transparent;} #MainMenu, footer {visibility: hidden;}
+.block-container {max-width: 1080px; padding: 1.4rem 1rem 4rem;}
+.dp-head {display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:.8rem;}
+.dp-brand {font-size:.8rem; letter-spacing:.35em; color:#E31E24; font-weight:700;}
+.dp-title {font-size:1.5rem; font-weight:300; letter-spacing:.14em;}
+.dp-tag {font-size:.65rem; letter-spacing:.22em; color:#9CA3AF;}
+.dp-sub {color:#A7AFBF; font-size:.95rem; margin:.7rem 0 1rem;}
+.dp-h {font-size:.72rem; letter-spacing:.28em; color:#9CA3AF; text-transform:uppercase; margin:1.6rem 0 .6rem; font-weight:500;}
+.dp-label, .dp-sl {font-size:.68rem; letter-spacing:.28em; color:#E31E24; font-weight:700; margin-bottom:.4rem;}
+.dp-sl {margin-top:.6rem;}
+.dp-card {background: rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:1.2rem 1.3rem; box-shadow:0 10px 40px rgba(0,0,0,.35);}
+.dp-hero {box-shadow: 0 0 0 1px rgba(227,30,36,.35), 0 18px 60px rgba(227,30,36,.10); animation: dpin .35s ease;}
+@keyframes dpin {from {opacity:0; transform: translateY(6px);} to {opacity:1; transform:none;}}
+.dp-status {display:flex; gap:.8rem; align-items:flex-start; padding:.9rem 1.1rem; border-radius:12px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); margin:1rem 0;}
+.dp-dot {width:9px; height:9px; border-radius:50%; margin-top:.4rem; background:#E31E24; box-shadow:0 0 12px #E31E24;}
+.dp-s-warn .dp-dot {background:#E0A526; box-shadow:0 0 12px #E0A526;}
+.dp-slabel {font-size:.68rem; letter-spacing:.26em; color:#9CA3AF; font-weight:500;}
+.dp-sname {font-size:1.15rem; font-weight:500;} .dp-sdesc {font-size:.85rem; color:#A7AFBF;}
+.dp-mono {height:150px; border-radius:10px; display:flex; flex-direction:column; justify-content:center; align-items:center;
+          background: linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.07); margin-bottom:1rem;}
+.dp-mono-b {font-size:1.7rem; letter-spacing:.2em; font-weight:300; text-transform:uppercase;} .dp-mono-c {font-size:.8rem; color:#9CA3AF; margin-top:.3rem;}
+.dp-img {width:100%; max-height:260px; object-fit:contain; margin-bottom:1rem;}
+.dp-name {font-size:1.7rem; font-weight:700; line-height:1.2;} .dp-price {font-size:1.25rem; margin-top:.4rem; font-weight:300;}
+.dp-badge {display:inline-block; font-size:.78rem; padding:2px 10px; border-radius:999px; margin-left:.5rem; background:rgba(255,255,255,.08); font-weight:500;}
+.dp-up {color:#E0A526; background:rgba(224,165,38,.12);} .dp-down {color:#4FBF8B; background:rgba(79,191,139,.12);}
+.dp-chips {margin:.8rem 0;} .dp-chip {display:inline-block; font-size:.74rem; padding:3px 11px; margin:0 .4rem .4rem 0; border:1px solid rgba(255,255,255,.16); border-radius:999px; color:#D6DAE3;}
+.dp-score-t {display:flex; justify-content:space-between; font-size:.7rem; letter-spacing:.2em; color:#9CA3AF;} .dp-score-t b {color:#fff; font-size:.95rem; letter-spacing:0;}
+.dp-bar {height:5px; border-radius:99px; background:rgba(255,255,255,.1); margin-top:.45rem; overflow:hidden;}
+.dp-bar > div {height:100%; background:#E31E24; border-radius:99px; transition: width .8s ease;}
+.dp-target, .dp-note {font-size:.82rem; color:#A7AFBF; margin-top:.8rem;} .dp-note {color:#E0A526;}
+.dp-pts {display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem;}
+.dp-pt {background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.09); border-radius:12px; padding:1rem;}
+.dp-pn {font-size:.72rem; color:#E31E24; font-weight:700; letter-spacing:.15em;} .dp-pk {font-size:.66rem; letter-spacing:.24em; color:#9CA3AF; margin:.35rem 0;}
+.dp-pv {font-size:.98rem; line-height:1.45;}
+.dp-why {display:grid; gap:.45rem;} .dp-w {display:flex; gap:.6rem; align-items:center; font-size:.93rem; color:#E5E7EB;}
+.dp-w i {width:7px; height:7px; border-radius:50%; background:#4FBF8B; flex:none;} .dp-w.no i {background:#6B7280;}
+.dp-cmp {display:grid; grid-template-columns: 90px 1fr 1fr; gap:.55rem .9rem; font-size:.88rem;}
+.dp-ch {font-size:.72rem; color:#9CA3AF; letter-spacing:.1em;} .dp-ch b {display:block; color:#fff; font-size:.92rem; letter-spacing:0; font-weight:500;}
+.dp-cl {color:#9CA3AF; font-size:.76rem;} .dp-cv {color:#E5E7EB;} .dp-cb {color:#fff; border-left:2px solid #E31E24; padding-left:.7rem;}
+.dp-done {border:1px solid rgba(79,191,139,.4); color:#4FBF8B; padding:.8rem 1rem; border-radius:12px; background:rgba(79,191,139,.07);}
+.dp-pilot {margin-top:2.2rem; padding:1rem 1.2rem; border-top:1px solid rgba(255,255,255,.08);}
+.dp-pl {font-size:.66rem; letter-spacing:.28em; color:#9CA3AF;} .dp-pn2 {font-size:1.6rem; font-weight:300;} .dp-pn2 span {font-size:.72rem; letter-spacing:.2em; color:#9CA3AF;}
+.dp-empty {padding:2.4rem 1rem; text-align:center; font-size:1.1rem; color:#E5E7EB;} .dp-empty span {color:#9CA3AF; font-size:.9rem;}
+/* tombol & selector bergaya produk, bukan Streamlit default */
+div.stButton > button {width:100%; min-height:3.1rem; border-radius:12px; background:rgba(255,255,255,.05); color:#fff; border:1px solid rgba(255,255,255,.14); transition: all .2s ease;}
+div.stButton > button:hover {border-color:#E31E24; background:rgba(227,30,36,.12); color:#fff;}
+div[role="radiogroup"] {gap:.5rem;} div[role="radiogroup"] label {background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:.75rem .9rem; width:100%; transition: all .2s ease;}
+div[role="radiogroup"] label:has(input:checked) {border-color:#E31E24; background:rgba(227,30,36,.14); box-shadow:0 0 18px rgba(227,30,36,.25);}
+div[role="radiogroup"] label > div:first-child {display:none;}
+div[data-testid="stCode"] pre {white-space: pre-wrap !important; line-height:1.55;}
+@media (max-width: 768px) {
+  .st-key-showcase [data-testid="stHorizontalBlock"] {flex-direction: column-reverse; gap:.6rem;}
+  .st-key-showcase div[role="radiogroup"] {flex-direction: row; overflow-x:auto; flex-wrap:nowrap;}
+  .st-key-showcase div[role="radiogroup"] label {white-space:nowrap; width:auto;}
+  .dp-pts {grid-template-columns:1fr;} .dp-cmp {grid-template-columns: 70px 1fr 1fr; font-size:.82rem;}
+  .dp-name {font-size:1.4rem;} .dp-title {font-size:1.1rem;} .dp-tag {display:none;}
+}
 </style>
-""",
-    unsafe_allow_html=True,
-)
+""", unsafe_allow_html=True)
 
 # >>> LOGIKA (fungsi murni, tanpa Streamlit) >>>
 # ============================================
@@ -52,7 +87,7 @@ W_TIER = 15
 W_CHIPSET = 20
 W_BENTUK = 20     # hanya dihitung kalau salah satu HP lipat (lipat dicocokkan dengan lipat)
 W_BRAND = 5       # hanya untuk mode "toko" (produk toko kosong)
-W_KEBUTUHAN = 25  # hanya dihitung kalau sales memilih prioritas customer
+W_POSISI = 10      # kemiripan target pengguna (hanya kalau kedua produk punya datanya)
 
 PRIORITAS = {
     "⚡ Performa": "performa",
@@ -292,22 +327,16 @@ def hitung_kecocokan(ref, alt, mode, prioritas, tol):
         else:
             alasan.append(("➖", "Bentuk berbeda (HP lipat vs HP biasa)"))
 
-    # --- Kebutuhan customer (hanya kalau sales memilih prioritas) ---
-    if prioritas:
-        maks += W_KEBUTUHAN
-        kuat_list = []
-        for key in prioritas:
-            kuat = kekuatan_prioritas(key, alt, lc_alt)
-            kuat_list.append(kuat)
-            nama_p = [k.split(" ", 1)[1].lower() for k, v in PRIORITAS.items() if v == key][0]
-            bukti = cari_bukti(key, alt)
-            if kuat >= 0.5 and bukti:
-                alasan.append(("✅", f"Cocok untuk {nama_p}: {bukti}"))
-            elif kuat >= 0.5:
-                alasan.append(("✅", f"Cocok untuk {nama_p}"))
-            else:
-                alasan.append(("➖", f"Data {nama_p} belum terlalu kuat di produk ini"))
-        dapat += W_KEBUTUHAN * (sum(kuat_list) / len(kuat_list))
+    # --- Positioning: kemiripan Target_User (kedua produk harus punya datanya) ---
+    stop = {"dan", "atau", "yang", "untuk", "hp", "suka", "pengguna"}
+    ta = set(re.findall(r"[a-z]+", (clean(ref.get("Target_User")) or "").lower())) - stop
+    tb = set(re.findall(r"[a-z]+", (clean(alt.get("Target_User")) or "").lower())) - stop
+    if ta and tb:
+        maks += W_POSISI
+        mirip = len(ta & tb) / len(ta | tb)
+        dapat += W_POSISI * min(1.0, mirip * 2)
+        if mirip > 0:
+            alasan.append(("✅", "Target pengguna mirip: " + ", ".join(sorted(ta & tb))))
 
     skor = min(100, round(dapat / maks * 100)) if maks > 0 else 0
     return {"skor": skor, "alasan": alasan, "selisih": selisih}
@@ -346,33 +375,41 @@ def gabung_teks(items):
     return ", ".join(items[:-1]) + " dan " + items[-1]
 
 
-def buat_script(ref_nama, alt_row, mode, prioritas_label, prioritas, selisih):
-    """Return (script_buka, script_tawar): alur Acknowledge-Probe lalu Bridge-Recommend-Close."""
-    kondisi = "belum kami jual" if mode == "kompetitor" else "lagi kosong"
-    if prioritas_label:
-        buka = (f"Oke Kak, {ref_nama} {kondisi}. Kalau saya tangkap, yang Kakak butuhkan "
-                f"terutama {gabung_teks(prioritas_label)}, betul ya?")
-    else:
-        buka = (f"Oke Kak, {ref_nama} {kondisi}. Boleh tahu, Kakak paling butuh yang mana: "
-                f"performa, baterai, atau kamera?")
+def kecil(t):
+    """Huruf kecil di awal kalimat sambungan, kecuali singkatan (AMOLED, iPhone)."""
+    return t if len(t) < 2 or t[1].isupper() else t[0].lower() + t[1:]
+
+
+def buat_script(ref_nama, alt_row, mode, selisih):
+    """Script 3 bagian dari data produk asli. Tidak mengklaim hal yang tidak ada di data."""
+    kondisi = "memang belum kami jual di Digiplus" if mode == "kompetitor" else "saat ini belum tersedia di Digiplus"
+    tier = clean(alt_row.get("Tier"))
+    kelas = f"di kelas {tier} dengan kisaran harga yang cukup dekat" if tier else "dengan kisaran harga yang cukup dekat"
+    opening = (f"Baik Kak, untuk {ref_nama} {kondisi}. Tapi supaya Kakak tidak perlu cari ke tempat lain, "
+               f"saya punya satu alternatif {kelas}, yang menurut saya layak dipertimbangkan.")
 
     alt_nama = alt_row["Nama_Lengkap"]
-    poin = poin_singkat(alt_row, prioritas)
-    if prioritas_label:
-        tawar = f"Kalau begitu saya rekomendasi {alt_nama}, Kak."
-    else:
-        tawar = f"Kalau begitu, ada {alt_nama} yang bisa jadi pilihan, Kak."
+    poin = [kecil(ringkas(p)) for p in (clean(alt_row.get(f"Kelebihan_{i}")) for i in (1, 2, 3)) if p]
+    chip = clean(alt_row.get("Chipset"))
+    rec = f"Ini {alt_nama}."
     if poin:
-        tawar += f" Plusnya: {gabung_teks(poin)}."
-
+        rec += f" Yang menonjol: {gabung_teks(poin)}."
+    if chip:
+        rec += f" Chipsetnya {chip}."
+    target = clean(alt_row.get("Target_User"))
+    if target:
+        rec += f" Produk ini biasanya cocok untuk {kecil(target)}."
     if selisih < -500000:
-        tawar += f" Harganya malah lebih hemat {rp(abs(selisih))}."
+        rec += f" Untuk harganya, ada selisih {rp(abs(selisih))} lebih hemat dibanding {ref_nama}."
     elif selisih > 500000:
-        tawar += f" Selisihnya sekitar {rp(selisih)}, tapi spesifikasinya sepadan."
+        rec += f" Untuk harganya, ada selisih sekitar {rp(selisih)} dari {ref_nama}, dan menurut saya itu layak Kakak pertimbangkan."
     else:
-        tawar += " Harganya hampir sama, Kak."
-    tawar += " Mau saya tunjukkan langsung?"
-    return buka, tawar
+        rec += f" Untuk harganya, berada di kisaran yang hampir sama dengan {ref_nama}."
+    rec += " Jadi walaupun produknya berbeda, kebutuhan Kakak tetap bisa kita bantu cari yang paling pas."
+
+    closing = ("Kalau Kakak berkenan, saya tunjukkan unitnya dan kita bandingkan langsung ya. "
+               "Boleh saya tahu, hal apa yang paling Kakak pentingkan di HP ini? Supaya saya bisa bantu arahkan lebih tepat.")
+    return {"opening": opening, "recommendation": rec, "closing": closing}
 
 
 def tabel_banding(ref, alt):
@@ -425,7 +462,7 @@ def susun_data(sheets_dict):
 # ============================================
 WIB = timezone(timedelta(hours=7))
 LOG_HEADER = [
-    "Timestamp", "Attempt_ID", "Event", "Sales", "Produk_Dicari", "Mode",
+    "Timestamp", "Attempt_ID", "Event", "Produk_Dicari", "Mode",
     "Jumlah_Rekomendasi", "Alternatif_1", "Alternatif_2", "Alternatif_3", "Hasil",
 ]
 LOCAL_LOG_FILE = "log_switch_selling.csv"
@@ -451,8 +488,9 @@ def get_log_sheet():
             ws = sh.worksheet("Log")
         except gspread.WorksheetNotFound:
             ws = sh.add_worksheet(title="Log", rows=1000, cols=len(LOG_HEADER))
-        if not ws.row_values(1):
-            ws.append_row(LOG_HEADER)
+        if ws.row_values(1) != LOG_HEADER:
+            # header lama punya kolom "Sales": rapikan ke header baru (kolom Event tetap di kolom C)
+            ws.update(range_name="A1", values=[LOG_HEADER + [""]])
         return ws, None
     except Exception as e:
         return None, str(e)
@@ -475,22 +513,16 @@ def tulis_log(row):
     return False
 
 
-def catat_attempt(attempt_id, sales, produk, mode, nama_alt):
+def catat_attempt(attempt_id, produk, mode, nama_alt):
     alt = (list(nama_alt) + ["", "", ""])[:3]
-    row = [
-        datetime.now(WIB).strftime("%Y-%m-%d %H:%M:%S"),
-        attempt_id, "attempt", sales or "-", produk, mode,
-        len(nama_alt), alt[0], alt[1], alt[2], "",
-    ]
+    row = [datetime.now(WIB).strftime("%Y-%m-%d %H:%M:%S"), attempt_id, "attempt",
+           produk, mode, len(nama_alt), alt[0], alt[1], alt[2], ""]
     return tulis_log(row)
 
 
-def catat_outcome(attempt_id, sales, produk, mode, hasil):
-    row = [
-        datetime.now(WIB).strftime("%Y-%m-%d %H:%M:%S"),
-        attempt_id, "outcome", sales or "-", produk, mode,
-        "", "", "", "", hasil,
-    ]
+def catat_outcome(attempt_id, produk, mode, hasil):
+    row = [datetime.now(WIB).strftime("%Y-%m-%d %H:%M:%S"), attempt_id, "outcome",
+           produk, mode, "", "", "", "", hasil]
     return tulis_log(row)
 
 
@@ -572,46 +604,183 @@ pilihan_kompetitor = (
 pilihan_unik = sorted(pilihan_toko + pilihan_kompetitor)
 
 # ============================================
-# 4. SIDEBAR (progress pilot + pengaturan lanjutan)
+# 4. HEADER, PENCARIAN, HASIL (UI)
 # ============================================
-with st.sidebar:
-    st.markdown("### 📈 Progress Pilot")
-    total_attempt = hitung_total_attempt()
-    st.metric("Switch-selling attempts", f"{total_attempt} / {TARGET_ATTEMPTS}")
-    st.progress(min(total_attempt / TARGET_ATTEMPTS, 1.0))
+def esc(x):
+    return html.escape(str(x))
 
-    ws_status, _ = get_log_sheet()
-    if ws_status is None:
-        st.caption("⚠️ Google Sheets belum terhubung, log disimpan sementara di file lokal.")
+
+def kategori_poin(teks):
+    """Label kartu hanya kalau teksnya jelas; selain itu 'KEY SELLING POINT'."""
+    t = teks.lower()
+    for label, pola in [("CAMERA", POLA["kamera"]), ("BATTERY", POLA["baterai"]),
+                        ("DISPLAY", POLA["layar"]), ("PERFORMANCE", POLA["performa"])]:
+        if any(re.search(p, t) for p in pola):
+            return label
+    return "KEY SELLING POINT"
+
+
+def gambar_produk(row):
+    for kolom in ["Image_URL", "Image", "Foto", "Product_Image"]:
+        u = clean(row.get(kolom))
+        if u and u.lower().startswith("http"):
+            return u
+    return None
+
+
+def render_header():
+    st.markdown(
+        '<div class="dp-head"><div><div class="dp-brand">DIGIPLUS</div>'
+        '<div class="dp-title">SMART SALES ASSISTANT</div></div>'
+        '<div class="dp-tag">SALES ENABLEMENT PLATFORM</div></div>'
+        '<div class="dp-sub">Turn unavailable requests into selling opportunities.</div>',
+        unsafe_allow_html=True)
+
+
+def render_status(nama, mode):
+    if mode == "toko":
+        label, desk, kelas = "CURRENTLY UNAVAILABLE", "Produk Digiplus yang sedang tidak tersedia", "dp-s-warn"
     else:
-        st.caption("✅ Log tersimpan otomatis ke Google Sheets.")
+        label, desk, kelas = "NOT SOLD AT DIGIPLUS", "Produk kompetitor yang tidak kami jual", "dp-s-red"
+    st.markdown(
+        f'<div class="dp-status {kelas}"><span class="dp-dot"></span><div>'
+        f'<div class="dp-slabel">{label}</div><div class="dp-sname">{esc(nama)}</div>'
+        f'<div class="dp-sdesc">{desk}. Berikut alternatif paling relevan.</div></div></div>',
+        unsafe_allow_html=True)
 
-    st.caption(f"📦 Sumber data produk: **{sumber_data}**")
-    if catatan_data:
-        st.warning(catatan_data)
 
-    st.markdown("---")
-    with st.expander("⚙️ Pengaturan lanjutan"):
-        max_selisih = st.slider(
-            "Toleransi selisih harga (Rp), untuk produk toko kosong:",
-            min_value=500000, max_value=5000000, value=2500000, step=500000,
-        )
-        top_n = st.slider("Jumlah rekomendasi:", 1, 6, 3)
+def render_showcase(ref, h, rank, terbatas):
+    row = h["row"]
+    nama, skor, sel = row["Nama_Lengkap"], h["skor"], h["selisih"]
+    img = gambar_produk(row)
+    if img:
+        visual = f'<img class="dp-img" src="{esc(img)}" alt="{esc(nama)}">'
+    else:  # tanpa foto: kartu informasi yang rapi
+        visual = (f'<div class="dp-mono"><div class="dp-mono-b">{esc(row.get("Brand", ""))}</div>'
+                  f'<div class="dp-mono-c">{esc(clean(row.get("Chipset")) or "")}</div></div>')
+    if sel > 0:
+        badge = f'<span class="dp-badge dp-up">{esc(rp_selisih(sel))}</span>'
+    elif sel < 0:
+        badge = f'<span class="dp-badge dp-down">{esc(rp_selisih(sel))} lebih hemat</span>'
+    else:
+        badge = '<span class="dp-badge">Harga sama</span>'
+    chips = "".join(f'<span class="dp-chip">{esc(c)}</span>' for c in
+                    [clean(row.get("Tier")), clean(row.get("Chipset"))] if c)
+    target = clean(row.get("Target_User"))
+    judul = "BEST MATCH" if rank == 0 else f"ALTERNATIVE {rank + 1}"
+    st.markdown(
+        f'<div class="dp-card dp-hero"><div class="dp-label">{judul}</div>{visual}'
+        f'<div class="dp-name">{esc(nama)}</div>'
+        f'<div class="dp-price">{esc(rp(row["Harga"]))} {badge}</div>'
+        f'<div class="dp-chips">{chips}</div>'
+        f'<div class="dp-score"><div class="dp-score-t"><span>MATCH SCORE</span><b>{skor}/100</b></div>'
+        f'<div class="dp-bar"><div style="width:{skor}%"></div></div></div>'
+        + (f'<div class="dp-target">Target pengguna: {esc(target)}</div>' if target else "")
+        + (f'<div class="dp-note">Skor berdasarkan data terbatas.</div>' if terbatas else "")
+        + '</div>', unsafe_allow_html=True)
 
-    if st.button("🔄 Refresh Data Sekarang"):
-        st.cache_data.clear()
-        st.success("✅ Data berhasil di-refresh!")
+
+def render_poin(row):
+    poin = [clean(row.get(f"Kelebihan_{i}")) for i in (1, 2, 3)]
+    poin = [p for p in poin if p]
+    if not poin:
+        return
+    st.markdown('<div class="dp-h">Yang bisa kita jual</div>', unsafe_allow_html=True)
+    kartu = "".join(
+        f'<div class="dp-pt"><div class="dp-pn">{i:02d}</div><div class="dp-pk">{kategori_poin(p)}</div>'
+        f'<div class="dp-pv">{esc(p)}</div></div>' for i, p in enumerate(poin, 1))
+    st.markdown(f'<div class="dp-pts">{kartu}</div>', unsafe_allow_html=True)
+
+
+def render_alasan(h):
+    st.markdown('<div class="dp-h">Why this product</div>', unsafe_allow_html=True)
+    ringkas_alasan = h["alasan"][:4]
+    st.markdown('<div class="dp-why">' + "".join(
+        f'<div class="dp-w {"ok" if i == "✅" else "no"}"><i></i>{esc(t)}</div>' for i, t in ringkas_alasan)
+        + '</div>', unsafe_allow_html=True)
+    with st.expander("How was this score calculated?"):
+        st.caption("Skor = harga, tier, chipset, bentuk (lipat/biasa), brand, dan kemiripan target pengguna. "
+                   "Komponen tanpa data tidak dihitung, jadi skor tetap adil tapi bisa berbasis data terbatas.")
+        for i, t in h["alasan"]:
+            st.markdown(f"{i} {t}")
+
+
+def render_script(ref_nama, row, mode, sel):
+    s = buat_script(ref_nama, row, mode, sel)
+    st.markdown('<div class="dp-h">Sales script</div>', unsafe_allow_html=True)
+    st.caption("Tekan ikon copy di pojok kanan setiap bagian.")
+    for judul, kunci in [("OPENING", "opening"), ("RECOMMENDATION", "recommendation"), ("CLOSING", "closing")]:
+        st.markdown(f'<div class="dp-sl">{judul}</div>', unsafe_allow_html=True)
+        try:
+            st.code(s[kunci], language=None, wrap_lines=True)
+        except TypeError:
+            st.code(s[kunci], language=None)
+
+
+def render_banding(ref, row):
+    def baris(label, a, b):
+        return (f'<div class="dp-cl">{esc(label)}</div><div class="dp-cv">{esc(a)}</div>'
+                f'<div class="dp-cv dp-cb">{esc(b)}</div>')
+    ma, mb = ambil_mah(teks_produk(ref)), ambil_mah(teks_produk(row))
+    poin = lambda r: " • ".join(p for p in (clean(r.get(f"Kelebihan_{i}")) for i in (1, 2, 3)) if p) or "-"
+    isi = (baris("Harga", rp(ref["Harga"]), rp(row["Harga"]))
+           + baris("Tier", clean(ref.get("Tier")) or "-", clean(row.get("Tier")) or "-")
+           + baris("Chipset", clean(ref.get("Chipset")) or "-", clean(row.get("Chipset")) or "-")
+           + baris("Baterai", fmt_mah(ma) if ma else "-", fmt_mah(mb) if mb else "-")
+           + baris("Target", clean(ref.get("Target_User")) or "-", clean(row.get("Target_User")) or "-")
+           + baris("Selling points", poin(ref), poin(row)))
+    st.markdown('<div class="dp-h">Comparison</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="dp-card dp-cmp"><div></div><div class="dp-ch">Diminta<br><b>{esc(ref["Nama_Lengkap"])}</b></div>'
+        f'<div class="dp-ch dp-cb">Alternatif<br><b>{esc(row["Nama_Lengkap"])}</b></div>{isi}</div>',
+        unsafe_allow_html=True)
+
+
+def render_outcome(attempt_id, produk, mode):
+    st.markdown('<div class="dp-h">Hasil percakapan</div>', unsafe_allow_html=True)
+    sudah = st.session_state.get(f"outcome_{attempt_id}")
+    if sudah:
+        st.markdown(f'<div class="dp-done">Tercatat: <b>{esc(sudah)}</b></div>', unsafe_allow_html=True)
+        return
+    c1, c2, c3 = st.columns(3)
+    pilihan = None
+    if c1.button("Customer tertarik", key="o1"):
+        pilihan = "Tertarik lihat alternatif"
+    if c2.button("Switch berhasil / terjual", key="o2"):
+        pilihan = "Switch berhasil"
+    if c3.button("Customer tidak jadi", key="o3"):
+        pilihan = "Tidak jadi"
+    if pilihan:
+        catat_outcome(attempt_id, produk, mode, pilihan)
+        st.session_state[f"outcome_{attempt_id}"] = pilihan
         st.rerun()
 
-# ============================================
-# 5. HEADER + INPUT
-# ============================================
-st.title("Digiplus Smart Sales Assistant")
-st.caption("Produk kosong? Jangan khawatir, kita masih bisa jual yang lain! 🛍️")
 
-nama_sales = st.text_input(
-    "👤 Nama sales", key="nama_sales", placeholder="Isi namamu dulu, contoh: Lian"
-)
+def render_pilot():
+    total = hitung_total_attempt()
+    pct = min(100, total / TARGET_ATTEMPTS * 100)
+    st.markdown(
+        f'<div class="dp-pilot"><div class="dp-pl">SWITCH-SELLING PILOT</div>'
+        f'<div class="dp-pn2">{total} <span>/ {TARGET_ATTEMPTS} ATTEMPTS</span></div>'
+        f'<div class="dp-bar"><div style="width:{pct:.0f}%"></div></div></div>', unsafe_allow_html=True)
+
+
+# --- Sidebar: hanya pengaturan lanjutan (sembunyi secara default) ---
+with st.sidebar:
+    st.markdown("### Pengaturan lanjutan")
+    max_selisih = st.slider("Toleransi selisih harga (Rp), produk toko kosong",
+                            500000, 5000000, 2500000, 500000)
+    top_n = st.slider("Jumlah alternatif", 2, 6, 4)
+    st.caption(f"Sumber data produk: {sumber_data}")
+    if catatan_data:
+        st.warning(catatan_data)
+    if get_log_sheet()[0] is None:
+        st.caption("Google Sheets belum terhubung. Log disimpan sementara di file lokal.")
+    if st.button("Refresh data"):
+        st.cache_data.clear()
+        st.rerun()
+
+render_header()
 
 
 def search_hp(searchterm: str):
@@ -621,190 +790,72 @@ def search_hp(searchterm: str):
 
 
 pilihan_customer = st_searchbox(
-    search_hp,
-    label="🔎 Customer cari HP apa?",
-    placeholder="Ketik atau pilih nama HP...",
-    key="search_hp",
-    default_options=pilihan_unik,
-)
+    search_hp, label="Search product or competitor",
+    placeholder="Search product or competitor...", key="search_hp",
+    default_options=pilihan_unik)
 
-
-def pilih_prioritas():
-    opsi = list(PRIORITAS.keys())
-    label = "🎯 Prioritas customer (tap yang disebut customer, boleh lebih dari satu)"
-    if hasattr(st, "pills"):
-        pilih = st.pills(label, opsi, selection_mode="multi", key="prioritas")
-    else:
-        pilih = st.multiselect(label, opsi, key="prioritas")
-    pilih = pilih or []
-    return [PRIORITAS[p] for p in pilih], [p.split(" ", 1)[1].lower() for p in pilih]
-
-
-def hero_html(nama, harga, selisih, skor):
-    if selisih > 0:
-        badge = f'<span class="ssa-badge ssa-up">{html.escape(rp_selisih(selisih))}</span>'
-    elif selisih < 0:
-        badge = f'<span class="ssa-badge ssa-down">{html.escape(rp_selisih(selisih))} lebih hemat</span>'
-    else:
-        badge = '<span class="ssa-badge ssa-same">harga sama</span>'
-    return (
-        '<div class="ssa-hero">'
-        '<div class="ssa-label">🥇 Rekomendasi utama</div>'
-        f'<div class="ssa-name">{html.escape(nama)}</div>'
-        f'<div class="ssa-price">{html.escape(rp(harga))} {badge}</div>'
-        f'<div class="ssa-bar"><div style="width:{skor}%"></div></div>'
-        f'<div class="ssa-score">Kecocokan {skor}/100</div>'
-        "</div>"
-    )
-
-
-def tampil_script(teks):
-    try:
-        st.code(teks, language=None, wrap_lines=True)
-    except TypeError:
-        st.code(teks, language=None)
-
-
-# ============================================
-# 6. LOGIC UTAMA
-# ============================================
 if pilihan_customer:
-    if pilihan_customer in pilihan_toko:
-        mode = "toko"
-        pool = df_toko
-        ref = df_toko[df_toko["Nama_Lengkap"] == pilihan_customer].iloc[0]
-    elif pilihan_customer in pilihan_kompetitor:
-        mode = "kompetitor"
-        pool = df_toko
-        ref = df_kompetitor[df_kompetitor["Nama_Lengkap"] == pilihan_customer].iloc[0]
-    else:
-        st.error(f"❌ Produk **{pilihan_customer}** tidak ditemukan di database.")
-        st.stop()
-
-    if pd.isna(ref["Harga"]):
-        st.error("⚠️ Harga produk ini belum diisi di Excel, jadi alternatif belum bisa dicari.")
-        st.stop()
-
-    if mode == "toko":
-        tol = max(float(max_selisih), 0.15 * float(ref["Harga"]))
-    else:
-        tol = 0.3 * float(ref["Harga"])
-
-    # --- Logging: 1 attempt per pencarian (hanya saat produk berubah) ---
-    if st.session_state.get("last_logged_product") != pilihan_customer:
-        st.session_state["prioritas"] = []
-        st.session_state["attempt_id"] = uuid.uuid4().hex[:8]
-        st.session_state["last_logged_product"] = pilihan_customer
-        awal = cari_alternatif(ref, pool, mode, tol, top_n, [])
-        masuk_sheet = catat_attempt(
-            st.session_state["attempt_id"], nama_sales, pilihan_customer, mode,
-            [h["row"]["Nama_Lengkap"] for h in awal],
-        )
-        hitung_total_attempt.clear()
-        st.toast("✅ Attempt tercatat" if masuk_sheet
-                 else "⚠️ Tercatat di file lokal (Sheets belum terhubung)")
-
-    if not (nama_sales or "").strip():
-        st.caption("⚠️ Isi **Nama sales** di atas supaya aktivitasmu tercatat atas namamu.")
-
-    # --- Status produk yang dicari ---
-    if mode == "toko":
-        st.info(f"⏳ **{pilihan_customer}** lagi kosong. Ini pilihan penggantinya:")
-    else:
-        st.warning(f"🚫 **{pilihan_customer}** tidak dijual di Digiplus. Tapi ada yang kebutuhannya mirip:")
-
-    info_ref = [rp(ref["Harga"])]
-    if clean(ref.get("Tier")):
-        info_ref.append(clean(ref.get("Tier")))
-    if clean(ref.get("Chipset")):
-        info_ref.append(clean(ref.get("Chipset")))
-    st.caption("Acuan: " + " • ".join(info_ref))
-
-    # --- Prioritas customer ---
-    prioritas, prioritas_label = pilih_prioritas()
-
-    hasil = cari_alternatif(ref, pool, mode, tol, top_n, prioritas)
-
-    if not hasil:
-        st.warning(
-            f"Belum ada alternatif untuk {pilihan_customer} dalam rentang harga ini. "
-            "Coba naikkan toleransi di sidebar (Pengaturan lanjutan) atau tambah data produk."
-        )
-    else:
-        utama = hasil[0]
-        row_u = utama["row"]
-
-        st.markdown(
-            hero_html(row_u["Nama_Lengkap"], row_u["Harga"], utama["selisih"], utama["skor"]),
-            unsafe_allow_html=True,
-        )
-
-        st.markdown("**Kenapa produk ini?**")
-        for ikon, teks in utama["alasan"]:
-            st.markdown(f"{ikon} {teks}")
-
-        # --- Script siap ucap ---
-        buka, tawar = buat_script(
-            pilihan_customer, row_u, mode, prioritas_label, prioritas, utama["selisih"]
-        )
-        st.markdown("### 💬 Script siap ucap")
-        st.caption("Alur: Acknowledge → Probe → Bridge → Recommend → Close. Tekan ikon copy di pojok kanan.")
-        st.markdown("**1. Buka & gali kebutuhan**")
-        tampil_script(buka)
-        st.markdown("**2. Tawarkan alternatif**")
-        tampil_script(tawar)
-
-        # --- Perbandingan ---
-        with st.expander(f"📊 Bandingkan {pilihan_customer} vs {row_u['Nama_Lengkap']}"):
-            st.table(tabel_banding(ref, row_u))
-            semua_poin = [clean(row_u.get(f"Kelebihan_{i}")) for i in range(1, 4)]
-            for t in [t for t in semua_poin if t]:
-                st.markdown(f"✅ {t}")
-
-        # --- Alternatif lain ---
-        if len(hasil) > 1:
-            st.markdown("### Alternatif lain")
-            for i, h in enumerate(hasil[1:], start=2):
-                r = h["row"]
-                judul = f"#{i}  {r['Nama_Lengkap']} • {rp(r['Harga'])} • {h['skor']}/100"
-                with st.expander(judul):
-                    st.caption(f"Selisih harga: {rp_selisih(h['selisih'])}")
-                    for ikon, teks in h["alasan"]:
-                        st.markdown(f"{ikon} {teks}")
-                    _, tawar_i = buat_script(
-                        pilihan_customer, r, mode, prioritas_label, prioritas, h["selisih"]
-                    )
-                    tampil_script(tawar_i)
-
-        # --- Hasil percakapan ---
-        st.markdown("---")
-        st.markdown("#### 📝 Hasil percakapan dengan customer (opsional)")
-        attempt_id = st.session_state.get("attempt_id")
-        sudah_isi = st.session_state.get(f"outcome_{attempt_id}")
-
-        if sudah_isi:
-            st.success(f"Tercatat: **{sudah_isi}**. Makasih! 🙏")
+    try:
+        if pilihan_customer in pilihan_toko:
+            mode = "toko"
+            ref = df_toko[df_toko["Nama_Lengkap"] == pilihan_customer].iloc[0]
+        elif pilihan_customer in pilihan_kompetitor:
+            mode = "kompetitor"
+            ref = df_kompetitor[df_kompetitor["Nama_Lengkap"] == pilihan_customer].iloc[0]
         else:
-            c1, c2, c3 = st.columns(3)
-            pilihan_hasil = None
-            if c1.button("👀 Tertarik lihat alternatif"):
-                pilihan_hasil = "Tertarik lihat alternatif"
-            if c2.button("🎉 Switch berhasil / terjual"):
-                pilihan_hasil = "Switch berhasil"
-            if c3.button("🚪 Customer tidak jadi"):
-                pilihan_hasil = "Tidak jadi"
+            st.error("Produk tidak ditemukan di database.")
+            st.stop()
+        if pd.isna(pd.to_numeric(ref["Harga"], errors="coerce")):
+            st.error("Harga produk ini belum diisi, sehingga alternatif belum bisa dicari.")
+            st.stop()
 
-            if pilihan_hasil:
-                catat_outcome(attempt_id, nama_sales, pilihan_customer, mode, pilihan_hasil)
-                st.session_state[f"outcome_{attempt_id}"] = pilihan_hasil
-                st.rerun()
+        harga_ref = float(ref["Harga"])
+        tol = max(float(max_selisih), 0.15 * harga_ref) if mode == "toko" else 0.3 * harga_ref
+        hasil = cari_alternatif(ref, df_toko, mode, tol, top_n, [])
 
+        # Logging otomatis anonim: 1 attempt per pencarian (saat produk berubah)
+        if st.session_state.get("last_logged_product") != pilihan_customer:
+            st.session_state["attempt_id"] = uuid.uuid4().hex[:8]
+            st.session_state["last_logged_product"] = pilihan_customer
+            st.session_state["alt_pilih"] = "Best Match"
+            catat_attempt(st.session_state["attempt_id"], pilihan_customer, mode,
+                          [h["row"]["Nama_Lengkap"] for h in hasil])
+            hitung_total_attempt.clear()
+
+        render_status(pilihan_customer, mode)
+
+        if not hasil:
+            st.info("Belum ada alternatif dalam rentang harga ini. Coba naikkan toleransi di Pengaturan lanjutan.")
+        else:
+            labels = ["Best Match"] + [f"Alternative {i + 1}" for i in range(1, len(hasil))]
+            if st.session_state.get("alt_pilih") not in labels:
+                st.session_state["alt_pilih"] = labels[0]
+            try:
+                zona = st.container(key="showcase")
+            except TypeError:
+                zona = st.container()
+            with zona:
+                kiri, kanan = st.columns([2.2, 1])
+                with kanan:
+                    st.markdown('<div class="dp-label">SELECT</div>', unsafe_allow_html=True)
+                    st.radio("Pilih alternatif", labels, key="alt_pilih", label_visibility="collapsed")
+                idx = labels.index(st.session_state["alt_pilih"])
+                h = hasil[idx]
+                terbatas = any("belum lengkap" in t for _, t in h["alasan"])
+                with kiri:
+                    render_showcase(ref, h, idx, terbatas)
+            render_poin(h["row"])
+            render_alasan(h)
+            render_script(pilihan_customer, h["row"], mode, h["selisih"])
+            render_banding(ref, h["row"])
+            render_outcome(st.session_state.get("attempt_id"), pilihan_customer, mode)
+    except Exception as e:  # jangan tampilkan error teknis ke sales
+        print("UI error:", repr(e))
+        st.error("Terjadi kendala saat menampilkan rekomendasi. Coba refresh data atau pilih produk lain.")
 else:
-    # reset supaya produk yang sama bisa dicari lagi dan dihitung sebagai attempt baru
     st.session_state.pop("last_logged_product", None)
-    st.info("👆 Ketik atau pilih nama HP di kolom pencarian untuk mulai.")
-    if not df_kompetitor.empty:
-        st.caption(
-            f"💡 Database: **{len(pilihan_toko)}** produk toko + "
-            f"**{len(pilihan_kompetitor)}** produk kompetitor"
-        )
+    st.markdown('<div class="dp-empty">Ketik nama HP yang dicari customer.<br>'
+                '<span>Jangan berhenti di "tidak ada". Tunjukkan apa yang bisa dijual.</span></div>',
+                unsafe_allow_html=True)
+
+render_pilot()
