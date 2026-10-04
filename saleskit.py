@@ -314,8 +314,57 @@ hr, .dp-sep {
     margin: 1.2rem 0;
 }
 
+/* ============ MICRO-ANIMATIONS (keyframes) ============ */
+@keyframes dpFadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes dpFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes dpLoadingPulse {
+    0%, 100% { opacity: .35; transform: scale(1); }
+    50%      { opacity: 1; transform: scale(1.35); }
+}
+@keyframes dpSpinnerRotate {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ============ CUSTOM LOADING SPINNER ============ */
+[data-testid="stSpinner"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1.4rem 1rem !important;
+    animation: dpFadeIn 0.3s ease-out both;
+}
+[data-testid="stSpinner"] > div {
+    border-color: rgba(142,216,255,.15) !important;
+    border-top-color: #8FE9FF !important;
+    border-right-color: #4DA6FF !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-width: 2px !important;
+    box-shadow: 0 0 24px rgba(77,166,255,.35);
+}
+[data-testid="stSpinner"] p,
+[data-testid="stSpinner"] span,
+[data-testid="stSpinner"] div[data-testid="stMarkdownContainer"] p {
+    color: #B4C0D4 !important;
+    font-size: .95rem !important;
+    font-weight: 400 !important;
+    letter-spacing: .02em !important;
+    margin-top: .6rem !important;
+}
+
 /* ============ HEADER ============ */
-.dp-head { text-align: center; padding: 2.2rem 0 1rem; }
+.dp-head {
+    text-align: center;
+    padding: 2.2rem 0 1rem;
+    animation: dpFadeUp 0.55s ease-out both;
+}
 .dp-title {
     font-size: 2.1rem; font-weight: 700; letter-spacing: -.01em;
     margin: 0; color: #FFFFFF; line-height: 1.25;
@@ -333,8 +382,14 @@ hr, .dp-sep {
 .dp-sep { margin: 1.6rem 0 1.4rem; }
 
 /* ============ SECTION HEADINGS ============ */
-.dp-h2 { font-size: 1.45rem; font-weight: 600; margin: 1.6rem 0 .2rem; color: #FFFFFF; }
-.dp-it { font-style: italic; font-weight: 300; color: #B4C0D4; margin-bottom: 1.1rem; }
+.dp-h2 {
+    font-size: 1.45rem; font-weight: 600; margin: 1.6rem 0 .2rem; color: #FFFFFF;
+    animation: dpFadeUp 0.5s ease-out 0.05s both;
+}
+.dp-it {
+    font-style: italic; font-weight: 300; color: #B4C0D4; margin-bottom: 1.1rem;
+    animation: dpFadeUp 0.5s ease-out 0.1s both;
+}
 
 /* ============ GLASS CARDS ============ */
 .dp-glass {
@@ -343,6 +398,12 @@ hr, .dp-sep {
     border: 1px solid rgba(142,216,255,.12);
     border-radius: 14px; padding: 1.1rem 1.25rem;
     box-shadow: 0 12px 40px rgba(0,0,0,.30), 0 0 30px rgba(80,150,255,.05);
+    animation: dpFadeUp 0.55s ease-out 0.15s both;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.dp-glass:hover {
+    border-color: rgba(142,216,255,.22);
+    box-shadow: 0 12px 40px rgba(0,0,0,.35), 0 0 36px rgba(80,150,255,.10);
 }
 .dp-ch { font-size: 1.02rem; font-weight: 500; color: #8ED8FF; margin-bottom: .9rem; }
 .dp-probe { background: rgba(20,45,75,.35); border-color: rgba(142,216,255,.18); }
@@ -367,6 +428,7 @@ hr, .dp-sep {
     box-shadow: 0 0 35px rgba(77,166,255,0.15);
     margin: 1rem 0 1.3rem;
     transition: all .3s ease;
+    animation: dpFadeUp 0.55s cubic-bezier(.2,.8,.2,1) both;
 }
 .dp-rl { font-size: .74rem; letter-spacing: .2em; font-weight: 600; color: #8ED8FF; }
 .dp-rt {
@@ -380,6 +442,7 @@ hr, .dp-sep {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem; padding: .4rem 0 .6rem;
+    animation: dpFadeUp 0.55s ease-out 0.08s both;
 }
 .dp-rk {
     font-size: .72rem; letter-spacing: .18em; text-transform: uppercase;
@@ -395,12 +458,17 @@ hr, .dp-sep {
 .dp-alt {
     font-size: 1.6rem; font-weight: 700; margin: 1.1rem 0 .25rem; color: #FFFFFF;
     word-break: break-word; overflow-wrap: anywhere;
+    animation: dpFadeUp 0.5s ease-out both;
 }
-.dp-meta { color: #A9B6CB; font-size: .95rem; margin-bottom: .4rem; font-weight: 300; }
+.dp-meta {
+    color: #A9B6CB; font-size: .95rem; margin-bottom: .4rem; font-weight: 300;
+    animation: dpFadeUp 0.5s ease-out 0.05s both;
+}
 .dp-meta b { color: #8ED8FF; font-weight: 500; }
 .dp-why {
     font-size: .85rem; color: #8E9BB0; margin: 0 0 1rem;
     font-weight: 300; line-height: 1.55;
+    animation: dpFadeUp 0.5s ease-out 0.1s both;
 }
 .dp-why b { color: #8ED8FF; font-weight: 500; }
 
@@ -408,13 +476,20 @@ hr, .dp-sep {
 .dp-done {
     border: 1px solid rgba(142,216,255,.35); color: #8ED8FF;
     padding: .8rem 1rem; border-radius: 12px; background: rgba(20,45,75,.25);
+    animation: dpFadeUp 0.5s ease-out both;
 }
-.dp-ask { margin: .4rem 0 1rem; }
+.dp-ask {
+    margin: .4rem 0 1rem;
+    animation: dpFadeUp 0.5s ease-out both;
+}
 .dp-ask-title { font-size: 1rem; font-weight: 500; color: #E8EEF8; margin-bottom: .2rem; }
 .dp-ask-sub { font-size: .85rem; font-weight: 300; color: #8E9BB0; font-style: italic; }
 
 /* ============ PILOT ============ */
-.dp-pilot { margin-top: 2.4rem; }
+.dp-pilot {
+    margin-top: 2.4rem;
+    animation: dpFadeUp 0.6s ease-out 0.2s both;
+}
 .dp-pl { font-size: .7rem; letter-spacing: .24em; color: #8794AB; }
 .dp-pn2 { font-size: 1.5rem; font-weight: 300; color: #FFFFFF; }
 .dp-pn2 span { font-size: .72rem; letter-spacing: .18em; color: #8794AB; }
@@ -426,6 +501,7 @@ hr, .dp-sep {
     height: 100%;
     background: linear-gradient(90deg, #4DA6FF, #8FE9FF);
     box-shadow: 0 0 10px #4DA6FF;
+    transition: width 1.2s cubic-bezier(.2,.8,.2,1);
 }
 
 /* ============ SEARCH (searchbox) ============ */
@@ -434,9 +510,12 @@ div[data-baseweb="select"] > div {
     border: 1px solid rgba(142,216,255,.20) !important;
     border-radius: 12px !important;
     min-height: 3.2rem;
-    transition: all .2s ease;
+    transition: all .25s cubic-bezier(.2,.8,.2,1);
 }
-div[data-baseweb="select"] > div:hover { border-color: rgba(143,233,255,.45) !important; }
+div[data-baseweb="select"] > div:hover {
+    border-color: rgba(143,233,255,.45) !important;
+    box-shadow: 0 0 20px rgba(77,166,255,.12);
+}
 div[data-baseweb="select"] > div:focus-within {
     border-color: #8FE9FF !important;
     box-shadow: 0 0 0 1px rgba(143,233,255,.5), 0 0 24px rgba(77,166,255,.28) !important;
@@ -464,7 +543,7 @@ div[data-baseweb="select"] > div:focus-within {
     pointer-events: none !important;
 }
 
-/* ============ RADIO AS TABS ============ */
+/* ============ RADIO AS TABS (with hover lift) ============ */
 [data-testid="stRadio"] > div[role="radiogroup"] {
     display: flex !important;
     flex-direction: row !important;
@@ -477,6 +556,7 @@ div[data-baseweb="select"] > div:focus-within {
     scrollbar-width: thin;
     max-width: 100% !important;
     box-sizing: border-box;
+    animation: dpFadeUp 0.5s ease-out 0.12s both;
 }
 [data-testid="stRadio"] > div[role="radiogroup"]::-webkit-scrollbar { height: 4px; }
 [data-testid="stRadio"] > div[role="radiogroup"]::-webkit-scrollbar-thumb {
@@ -488,7 +568,7 @@ div[data-baseweb="select"] > div:focus-within {
     padding: .65rem 1.05rem !important;
     white-space: nowrap;
     border-radius: 10px 10px 0 0;
-    transition: all .2s ease;
+    transition: all .25s cubic-bezier(.2,.8,.2,1);
     cursor: pointer;
     margin: 0 !important;
     border: none !important;
@@ -499,7 +579,8 @@ div[data-baseweb="select"] > div:focus-within {
 }
 [data-testid="stRadio"] label:hover {
     color: #FFFFFF !important;
-    background: rgba(77,166,255,.06) !important;
+    background: rgba(77,166,255,.08) !important;
+    transform: translateY(-2px);
 }
 [data-testid="stRadio"] label:has(input:checked) {
     color: #FFFFFF !important;
@@ -514,19 +595,24 @@ div[data-baseweb="select"] > div:focus-within {
 }
 [data-testid="stRadio"] > label:first-child { display: none !important; }
 
-/* ============ BUTTONS ============ */
+/* ============ BUTTONS (with hover lift) ============ */
 div.stButton > button {
     width: 100%; min-height: 3rem; border-radius: 12px;
     background: rgba(255,255,255,.05); color: #FFFFFF;
     border: 1px solid rgba(150,200,255,.18);
-    transition: all .2s ease; font-weight: 500;
+    transition: all .25s cubic-bezier(.2,.8,.2,1);
+    font-weight: 500;
     word-break: break-word;
 }
 div.stButton > button:hover {
     border-color: #4DA6FF;
     background: rgba(77,166,255,.12);
     color: #FFFFFF;
-    box-shadow: 0 0 18px rgba(77,166,255,.20);
+    box-shadow: 0 0 22px rgba(77,166,255,.25), 0 8px 20px rgba(0,0,0,.30);
+    transform: translateY(-2px);
+}
+div.stButton > button:active {
+    transform: translateY(0);
 }
 
 /* ============ MOBILE ============ */
@@ -546,6 +632,16 @@ div.stButton > button:hover {
     .dp-reco .dp-rt { font-size: 1.15rem; }
     [data-testid="stRadio"] label { padding: .55rem .85rem !important; }
     [data-testid="stRadio"] label p { font-size: .82rem !important; }
+    [data-testid="stRadio"] label:hover { transform: translateY(-1px); }
+}
+
+/* ============ REDUCE MOTION ============ */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -1078,14 +1174,15 @@ def load_data():
     return df_toko, df_komp, "Excel (data_hp.xlsx)", catatan
 
 
-try:
-    df_toko, df_kompetitor, sumber_data, catatan_data = load_data()
-except FileNotFoundError:
-    st.error("⚠️ Data produk tidak ditemukan. Isi tab produk di Google Sheets atau upload data_hp.xlsx.")
-    st.stop()
-except Exception as e:
-    st.error(f"⚠️ Error baca data: {e}")
-    st.stop()
+with st.spinner("Menyiapkan data produk..."):
+    try:
+        df_toko, df_kompetitor, sumber_data, catatan_data = load_data()
+    except FileNotFoundError:
+        st.error("⚠️ Data produk tidak ditemukan. Isi tab produk di Google Sheets atau upload data_hp.xlsx.")
+        st.stop()
+    except Exception as e:
+        st.error(f"⚠️ Error baca data: {e}")
+        st.stop()
 
 df_toko["Nama_Lengkap"] = df_toko.apply(gabung_nama, axis=1)
 if not df_kompetitor.empty:
@@ -1222,7 +1319,8 @@ with st.sidebar:
     if get_log_sheet()[0] is None:
         st.caption("Google Sheets belum terhubung. Log disimpan sementara di file lokal.")
     if st.button("Refresh data"):
-        st.cache_data.clear()
+        with st.spinner("Menyegarkan data..."):
+            st.cache_data.clear()
         st.rerun()
 
 
@@ -1276,7 +1374,8 @@ if pilihan_customer:
 
         harga_ref = float(ref["Harga"])
         tol = max(float(TOL_RP), 0.15 * harga_ref) if mode == "toko" else 0.3 * harga_ref
-        hasil = cari_alternatif(ref, df_toko, mode, tol, TOP_N)
+        with st.spinner("Mencari alternatif terbaik..."):
+            hasil = cari_alternatif(ref, df_toko, mode, tol, TOP_N)
 
         if st.session_state.get("last_logged_product") != pilihan_customer:
             st.session_state["attempt_id"] = uuid.uuid4().hex[:8]
