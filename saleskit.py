@@ -8,6 +8,7 @@ from datetime import datetime, timezone, timedelta
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
+import altair as alt
 from streamlit_searchbox import st_searchbox
 
 st.set_page_config(
@@ -19,7 +20,7 @@ st.set_page_config(
 
 
 # ============================================
-# SPLASH SCREEN — cinematic intro (sekali per session)
+# SPLASH SCREEN
 # ============================================
 SPLASH_DURATION_MS = 2600
 
@@ -34,7 +35,6 @@ def show_splash():
     (function() {{
         try {{
             const doc = window.parent.document;
-
             const oldStyle = doc.getElementById('dp-splash-style');
             if (oldStyle) oldStyle.remove();
             const oldSplash = doc.getElementById('dp-splash');
@@ -44,138 +44,46 @@ def show_splash():
             style.id = 'dp-splash-style';
             style.textContent = `
                 #dp-splash {{
-                    position: fixed !important;
-                    inset: 0 !important;
-                    z-index: 999999 !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
+                    position: fixed !important; inset: 0 !important; z-index: 999999 !important;
+                    display: flex !important; align-items: center !important; justify-content: center !important;
                     background:
                         radial-gradient(900px 420px at 50% 40%, rgba(77,166,255,.15), transparent 65%),
                         radial-gradient(700px 320px at 50% 60%, rgba(142,216,255,.06), transparent 70%),
                         linear-gradient(180deg, #050812, #080C16 55%, #0B1220) !important;
-                    color: #F3F6FB !important;
-                    font-family: 'Roboto', Arial, sans-serif !important;
-                    animation: dp-splash-in 0.4s ease-out both !important;
-                    pointer-events: all !important;
+                    color: #F3F6FB !important; font-family: 'Roboto', Arial, sans-serif !important;
+                    animation: dp-splash-in 0.4s ease-out both !important; pointer-events: all !important;
                 }}
-                #dp-splash.dp-out {{
-                    animation: dp-splash-out 0.5s ease-in forwards !important;
-                    pointer-events: none !important;
-                }}
-                #dp-splash .dp-sp-inner {{
-                    text-align: center;
-                    max-width: 560px;
-                    padding: 2rem;
-                }}
+                #dp-splash.dp-out {{ animation: dp-splash-out 0.5s ease-in forwards !important; pointer-events: none !important; }}
+                #dp-splash .dp-sp-inner {{ text-align: center; max-width: 560px; padding: 2rem; }}
                 #dp-splash .dp-sp-logo {{
-                    width: 76px; height: 76px;
-                    margin: 0 auto 1.6rem;
-                    border-radius: 20px;
-                    display: flex; align-items: center; justify-content: center;
-                    color: #FFFFFF;
+                    width: 76px; height: 76px; margin: 0 auto 1.6rem; border-radius: 20px;
+                    display: flex; align-items: center; justify-content: center; color: #FFFFFF;
                     background: linear-gradient(145deg, rgba(77,166,255,.32), rgba(255,255,255,.06));
                     border: 1px solid rgba(142,216,255,.38);
                     box-shadow: 0 0 50px rgba(77,166,255,.45), inset 0 1px 0 rgba(255,255,255,.10);
-                    position: relative;
-                    animation: dp-sp-logo 0.75s cubic-bezier(.2,.8,.2,1) 0.1s both;
+                    position: relative; animation: dp-sp-logo 0.75s cubic-bezier(.2,.8,.2,1) 0.1s both;
                 }}
                 #dp-splash .dp-sp-logo::after {{
-                    content: "";
-                    position: absolute;
-                    right: -4px; bottom: -4px;
-                    width: 14px; height: 14px;
-                    border-radius: 50%;
-                    background: #E31E24;
-                    box-shadow: 0 0 14px rgba(227,30,36,.65);
+                    content: ""; position: absolute; right: -4px; bottom: -4px;
+                    width: 14px; height: 14px; border-radius: 50%;
+                    background: #E31E24; box-shadow: 0 0 14px rgba(227,30,36,.65);
                 }}
-                #dp-splash .dp-sp-logo svg {{
-                    width: 68%; height: 68%;
-                    display: block;
-                    filter: drop-shadow(0 0 8px rgba(142,216,255,.6));
-                }}
-                #dp-splash .dp-sp-eyebrow {{
-                    font-size: .7rem;
-                    letter-spacing: .38em;
-                    color: #8ED8FF;
-                    text-transform: uppercase;
-                    font-weight: 600;
-                    opacity: 0;
-                    animation: dp-sp-up 0.55s ease-out 0.45s both;
-                }}
-                #dp-splash .dp-sp-title {{
-                    font-size: 2.1rem;
-                    font-weight: 800;
-                    color: #FFFFFF;
-                    margin-top: .65rem;
-                    letter-spacing: -.02em;
-                    line-height: 1.2;
-                    opacity: 0;
-                    animation: dp-sp-up 0.55s ease-out 0.65s both;
-                }}
-                #dp-splash .dp-sp-line {{
-                    width: 90px; height: 1px;
-                    margin: 1.5rem auto;
-                    background: linear-gradient(90deg, transparent, #4DA6FF, transparent);
-                    box-shadow: 0 0 14px #4DA6FF;
-                    opacity: 0;
-                    animation: dp-sp-up 0.55s ease-out 0.85s both;
-                }}
-                #dp-splash .dp-sp-tag {{
-                    font-size: .92rem;
-                    font-style: italic;
-                    color: #B4C0D4;
-                    opacity: 0;
-                    animation: dp-sp-up 0.55s ease-out 1.05s both;
-                }}
-                #dp-splash .dp-sp-credit {{
-                    margin-top: .55rem;
-                    font-size: .78rem;
-                    color: #8E9BB0;
-                    letter-spacing: .02em;
-                    opacity: 0;
-                    animation: dp-sp-up 0.55s ease-out 1.25s both;
-                }}
-                #dp-splash .dp-sp-credit b {{
-                    color: #E8EEF8;
-                    font-weight: 600;
-                }}
-                #dp-splash .dp-sp-dots {{
-                    margin-top: 2.2rem;
-                    display: flex;
-                    gap: .4rem;
-                    justify-content: center;
-                    opacity: 0;
-                    animation: dp-sp-up 0.55s ease-out 1.45s both;
-                }}
-                #dp-splash .dp-sp-dot {{
-                    width: 6px; height: 6px;
-                    border-radius: 50%;
-                    background: rgba(142,216,255,.35);
-                    animation: dp-sp-pulse 1.2s ease-in-out infinite;
-                }}
+                #dp-splash .dp-sp-logo svg {{ width: 68%; height: 68%; display: block; filter: drop-shadow(0 0 8px rgba(142,216,255,.6)); }}
+                #dp-splash .dp-sp-eyebrow {{ font-size: .7rem; letter-spacing: .38em; color: #8ED8FF; text-transform: uppercase; font-weight: 600; opacity: 0; animation: dp-sp-up 0.55s ease-out 0.45s both; }}
+                #dp-splash .dp-sp-title {{ font-size: 2.1rem; font-weight: 800; color: #FFFFFF; margin-top: .65rem; letter-spacing: -.02em; line-height: 1.2; opacity: 0; animation: dp-sp-up 0.55s ease-out 0.65s both; }}
+                #dp-splash .dp-sp-line {{ width: 90px; height: 1px; margin: 1.5rem auto; background: linear-gradient(90deg, transparent, #4DA6FF, transparent); box-shadow: 0 0 14px #4DA6FF; opacity: 0; animation: dp-sp-up 0.55s ease-out 0.85s both; }}
+                #dp-splash .dp-sp-tag {{ font-size: .92rem; font-style: italic; color: #B4C0D4; opacity: 0; animation: dp-sp-up 0.55s ease-out 1.05s both; }}
+                #dp-splash .dp-sp-credit {{ margin-top: .55rem; font-size: .78rem; color: #8E9BB0; opacity: 0; animation: dp-sp-up 0.55s ease-out 1.25s both; }}
+                #dp-splash .dp-sp-credit b {{ color: #E8EEF8; font-weight: 600; }}
+                #dp-splash .dp-sp-dots {{ margin-top: 2.2rem; display: flex; gap: .4rem; justify-content: center; opacity: 0; animation: dp-sp-up 0.55s ease-out 1.45s both; }}
+                #dp-splash .dp-sp-dot {{ width: 6px; height: 6px; border-radius: 50%; background: rgba(142,216,255,.35); animation: dp-sp-pulse 1.2s ease-in-out infinite; }}
                 #dp-splash .dp-sp-dot:nth-child(2) {{ animation-delay: .15s; }}
                 #dp-splash .dp-sp-dot:nth-child(3) {{ animation-delay: .3s; }}
-                @keyframes dp-splash-in {{
-                    from {{ opacity: 0; }}
-                    to {{ opacity: 1; }}
-                }}
-                @keyframes dp-splash-out {{
-                    from {{ opacity: 1; }}
-                    to {{ opacity: 0; }}
-                }}
-                @keyframes dp-sp-logo {{
-                    from {{ opacity: 0; transform: scale(0.65); }}
-                    to {{ opacity: 1; transform: scale(1); }}
-                }}
-                @keyframes dp-sp-up {{
-                    from {{ opacity: 0; transform: translateY(10px); }}
-                    to {{ opacity: 1; transform: translateY(0); }}
-                }}
-                @keyframes dp-sp-pulse {{
-                    0%, 100% {{ opacity: .35; transform: scale(1); }}
-                    50% {{ opacity: 1; transform: scale(1.3); background: #8ED8FF; }}
-                }}
+                @keyframes dp-splash-in {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
+                @keyframes dp-splash-out {{ from {{ opacity: 1; }} to {{ opacity: 0; }} }}
+                @keyframes dp-sp-logo {{ from {{ opacity: 0; transform: scale(0.65); }} to {{ opacity: 1; transform: scale(1); }} }}
+                @keyframes dp-sp-up {{ from {{ opacity: 0; transform: translateY(10px); }} to {{ opacity: 1; transform: translateY(0); }} }}
+                @keyframes dp-sp-pulse {{ 0%, 100% {{ opacity: .35; transform: scale(1); }} 50% {{ opacity: 1; transform: scale(1.3); background: #8ED8FF; }} }}
             `;
             doc.head.appendChild(style);
 
@@ -187,29 +95,17 @@ def show_splash():
                         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                             <defs>
                                 <linearGradient id="dpScreen" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#8FE9FF"/>
-                                    <stop offset="100%" stop-color="#4DA6FF"/>
+                                    <stop offset="0%" stop-color="#8FE9FF"/><stop offset="100%" stop-color="#4DA6FF"/>
                                 </linearGradient>
                                 <linearGradient id="dpBody" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" stop-color="#FFFFFF"/>
-                                    <stop offset="100%" stop-color="#B4DDFF"/>
+                                    <stop offset="0%" stop-color="#FFFFFF"/><stop offset="100%" stop-color="#B4DDFF"/>
                                 </linearGradient>
                             </defs>
-
-                            <rect x="24" y="6" width="52" height="88" rx="10" ry="10"
-                                  fill="url(#dpBody)"/>
-
-                            <rect x="28" y="16" width="44" height="66" rx="6" ry="6"
-                                  fill="#0A1424"/>
-
-                            <rect x="32" y="20" width="36" height="58" rx="4" ry="4"
-                                  fill="url(#dpScreen)" opacity="0.85"/>
-
-                            <line x1="44" y1="11" x2="56" y2="11"
-                                  stroke="#0A1424" stroke-width="2" stroke-linecap="round"/>
-
-                            <circle cx="50" cy="88" r="3.5"
-                                    fill="#0A1424" stroke="rgba(142,216,255,.6)" stroke-width="0.8"/>
+                            <rect x="24" y="6" width="52" height="88" rx="10" ry="10" fill="url(#dpBody)"/>
+                            <rect x="28" y="16" width="44" height="66" rx="6" ry="6" fill="#0A1424"/>
+                            <rect x="32" y="20" width="36" height="58" rx="4" ry="4" fill="url(#dpScreen)" opacity="0.85"/>
+                            <line x1="44" y1="11" x2="56" y2="11" stroke="#0A1424" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="50" cy="88" r="3.5" fill="#0A1424" stroke="rgba(142,216,255,.6)" stroke-width="0.8"/>
                         </svg>
                     </div>
                     <div class="dp-sp-eyebrow">DIGIPLUS · MAPTECH</div>
@@ -218,9 +114,7 @@ def show_splash():
                     <div class="dp-sp-tag">From "We don't have it" → "Here's what we have."</div>
                     <div class="dp-sp-credit">created by <b>Herlian Bhara</b></div>
                     <div class="dp-sp-dots">
-                        <div class="dp-sp-dot"></div>
-                        <div class="dp-sp-dot"></div>
-                        <div class="dp-sp-dot"></div>
+                        <div class="dp-sp-dot"></div><div class="dp-sp-dot"></div><div class="dp-sp-dot"></div>
                     </div>
                 </div>
             `;
@@ -228,13 +122,9 @@ def show_splash():
 
             setTimeout(() => {{
                 splash.classList.add('dp-out');
-                setTimeout(() => {{
-                    try {{ splash.remove(); }} catch (e) {{}}
-                }}, 550);
+                setTimeout(() => {{ try {{ splash.remove(); }} catch (e) {{}} }}, 550);
             }}, {dur});
-        }} catch (err) {{
-            console.warn('Splash error:', err);
-        }}
+        }} catch (err) {{ console.warn('Splash error:', err); }}
     }})();
     </script>
     """, height=0, scrolling=False)
@@ -244,7 +134,7 @@ show_splash()
 
 
 # ============================================
-# CSS — Glacier / Frosted Glass / Ice Blue
+# CSS
 # ============================================
 st.markdown("""
 <style>
@@ -254,35 +144,15 @@ html, body, .stApp, button, input, textarea, [class*="st-"] {
     font-family: 'Roboto', Arial, sans-serif !important;
 }
 
-/* ============ LOCK HORIZONTAL SCROLL ============ */
-html, body {
-    overflow-x: hidden;
-    overflow-x: clip !important;
-    overflow-y: visible !important;
-    max-width: 100vw;
-}
-.stApp {
-    overflow-x: hidden;
-    overflow-x: clip !important;
-    max-width: 100vw;
-}
-[data-testid="stAppViewContainer"] {
-    overflow-x: hidden;
-    overflow-x: clip !important;
-}
-[data-testid="stMain"] {
-    overflow-x: hidden;
-    overflow-x: clip !important;
-}
-.block-container {
-    overflow-x: clip;
-    max-width: 100%;
-}
-section.main {
-    overflow-x: clip !important;
-}
+/* LOCK HORIZONTAL SCROLL */
+html, body { overflow-x: hidden; overflow-x: clip !important; overflow-y: visible !important; max-width: 100vw; }
+.stApp { overflow-x: hidden; overflow-x: clip !important; max-width: 100vw; }
+[data-testid="stAppViewContainer"] { overflow-x: hidden; overflow-x: clip !important; }
+[data-testid="stMain"] { overflow-x: hidden; overflow-x: clip !important; }
+.block-container { overflow-x: clip; max-width: 100%; }
+section.main { overflow-x: clip !important; }
 
-/* ============ HIDE STREAMLIT CHROME ============ */
+/* HIDE STREAMLIT CHROME */
 header[data-testid="stHeader"] { display: none !important; }
 [data-testid="stToolbar"] { display: none !important; }
 [data-testid="stDecoration"] { display: none !important; }
@@ -298,7 +168,7 @@ header[data-testid="stHeader"] { display: none !important; }
 footer { visibility: hidden; display: none !important; }
 [data-testid="stToolbarActions"] { display: none !important; }
 
-/* ============ BASE ============ */
+/* BASE */
 .stApp {
     background:
         radial-gradient(900px 420px at 50% -10%, rgba(77,166,255,.10), transparent 65%),
@@ -314,328 +184,223 @@ hr, .dp-sep {
     margin: 1.2rem 0;
 }
 
-/* ============ MICRO-ANIMATIONS (keyframes) ============ */
-@keyframes dpFadeUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes dpFadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-}
-@keyframes dpLoadingPulse {
-    0%, 100% { opacity: .35; transform: scale(1); }
-    50%      { opacity: 1; transform: scale(1.35); }
-}
-@keyframes dpSpinnerRotate {
-    0%   { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+/* KEYFRAMES */
+@keyframes dpFadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes dpFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dpLoadingPulse { 0%, 100% { opacity: .35; transform: scale(1); } 50% { opacity: 1; transform: scale(1.35); } }
 
-/* ============ CUSTOM LOADING SPINNER ============ */
+/* CUSTOM SPINNER */
 [data-testid="stSpinner"] {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 1.4rem 1rem !important;
-    animation: dpFadeIn 0.3s ease-out both;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+    padding: 1.4rem 1rem !important; animation: dpFadeIn 0.3s ease-out both;
 }
 [data-testid="stSpinner"] > div {
     border-color: rgba(142,216,255,.15) !important;
     border-top-color: #8FE9FF !important;
     border-right-color: #4DA6FF !important;
-    width: 32px !important;
-    height: 32px !important;
-    border-width: 2px !important;
+    width: 32px !important; height: 32px !important; border-width: 2px !important;
     box-shadow: 0 0 24px rgba(77,166,255,.35);
 }
-[data-testid="stSpinner"] p,
-[data-testid="stSpinner"] span,
+[data-testid="stSpinner"] p, [data-testid="stSpinner"] span,
 [data-testid="stSpinner"] div[data-testid="stMarkdownContainer"] p {
-    color: #B4C0D4 !important;
-    font-size: .95rem !important;
-    font-weight: 400 !important;
-    letter-spacing: .02em !important;
-    margin-top: .6rem !important;
+    color: #B4C0D4 !important; font-size: .95rem !important;
+    font-weight: 400 !important; letter-spacing: .02em !important; margin-top: .6rem !important;
 }
 
-/* ============ HEADER ============ */
-.dp-head {
-    text-align: center;
-    padding: 2.2rem 0 1rem;
-    animation: dpFadeUp 0.55s ease-out both;
-}
-.dp-title {
-    font-size: 2.1rem; font-weight: 700; letter-spacing: -.01em;
-    margin: 0; color: #FFFFFF; line-height: 1.25;
-}
-.dp-sub {
-    font-size: 1rem; font-weight: 400; color: #B4C0D4;
-    margin: .75rem auto 0; max-width: 620px; line-height: 1.55;
-}
-.dp-sub-part2 {
-    display: inline-block;
-    font-size: .95rem;
-    opacity: .92;
-    margin-top: .15rem;
-}
+/* HEADER */
+.dp-head { text-align: center; padding: 2.2rem 0 1rem; animation: dpFadeUp 0.55s ease-out both; }
+.dp-title { font-size: 2.1rem; font-weight: 700; letter-spacing: -.01em; margin: 0; color: #FFFFFF; line-height: 1.25; }
+.dp-sub { font-size: 1rem; font-weight: 400; color: #B4C0D4; margin: .75rem auto 0; max-width: 620px; line-height: 1.55; }
+.dp-sub-part2 { display: inline-block; font-size: .95rem; opacity: .92; margin-top: .15rem; }
 .dp-sep { margin: 1.6rem 0 1.4rem; }
 
-/* ============ SECTION HEADINGS ============ */
-.dp-h2 {
-    font-size: 1.45rem; font-weight: 600; margin: 1.6rem 0 .2rem; color: #FFFFFF;
-    animation: dpFadeUp 0.5s ease-out 0.05s both;
-}
-.dp-it {
-    font-style: italic; font-weight: 300; color: #B4C0D4; margin-bottom: 1.1rem;
-    animation: dpFadeUp 0.5s ease-out 0.1s both;
-}
+/* SECTION HEADINGS */
+.dp-h2 { font-size: 1.45rem; font-weight: 600; margin: 1.6rem 0 .2rem; color: #FFFFFF; animation: dpFadeUp 0.5s ease-out 0.05s both; }
+.dp-it { font-style: italic; font-weight: 300; color: #B4C0D4; margin-bottom: 1.1rem; animation: dpFadeUp 0.5s ease-out 0.1s both; }
 
-/* ============ GLASS CARDS ============ */
+/* GLASS CARDS */
 .dp-glass {
-    background: rgba(255,255,255,.035);
-    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(142,216,255,.12);
-    border-radius: 14px; padding: 1.1rem 1.25rem;
+    background: rgba(255,255,255,.035); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(142,216,255,.12); border-radius: 14px; padding: 1.1rem 1.25rem;
     box-shadow: 0 12px 40px rgba(0,0,0,.30), 0 0 30px rgba(80,150,255,.05);
     animation: dpFadeUp 0.55s ease-out 0.15s both;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
-.dp-glass:hover {
-    border-color: rgba(142,216,255,.22);
-    box-shadow: 0 12px 40px rgba(0,0,0,.35), 0 0 36px rgba(80,150,255,.10);
-}
+.dp-glass:hover { border-color: rgba(142,216,255,.22); box-shadow: 0 12px 40px rgba(0,0,0,.35), 0 0 36px rgba(80,150,255,.10); }
 .dp-ch { font-size: 1.02rem; font-weight: 500; color: #8ED8FF; margin-bottom: .9rem; }
 .dp-probe { background: rgba(20,45,75,.35); border-color: rgba(142,216,255,.18); }
 .dp-probe .dp-ch { color: #8ED8FF; }
-.dp-pt {
-    display: flex; gap: .6rem; margin: .1rem 0 .95rem;
-    line-height: 1.55; font-size: 1rem; font-weight: 400; color: #E8EEF8;
-}
-.dp-script {
-    font-style: italic; line-height: 1.7; font-size: 1rem;
-    font-weight: 300; color: #E8EEF8;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-}
+.dp-pt { display: flex; gap: .6rem; margin: .1rem 0 .95rem; line-height: 1.55; font-size: 1rem; font-weight: 400; color: #E8EEF8; }
+.dp-script { font-style: italic; line-height: 1.7; font-size: 1rem; font-weight: 300; color: #E8EEF8; word-break: break-word; overflow-wrap: anywhere; }
 
-/* ============ RECOMMENDATION CARD ============ */
+/* RECOMMENDATION CARD */
 .dp-reco {
     display: block; padding: 1rem 1.25rem; border-radius: 14px;
     backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
     background: linear-gradient(135deg, rgba(20,45,75,0.90), rgba(8,22,42,0.95));
-    border: 1px solid rgba(142,216,255,0.35);
-    box-shadow: 0 0 35px rgba(77,166,255,0.15);
-    margin: 1rem 0 1.3rem;
-    transition: all .3s ease;
+    border: 1px solid rgba(142,216,255,0.35); box-shadow: 0 0 35px rgba(77,166,255,0.15);
+    margin: 1rem 0 1.3rem; transition: all .3s ease;
     animation: dpFadeUp 0.55s cubic-bezier(.2,.8,.2,1) both;
 }
 .dp-rl { font-size: .74rem; letter-spacing: .2em; font-weight: 600; color: #8ED8FF; }
-.dp-rt {
-    font-size: 1.35rem; font-weight: 700; color: #FFFFFF; margin-top: .15rem;
-    word-break: break-word; overflow-wrap: anywhere;
-}
+.dp-rt { font-size: 1.35rem; font-weight: 700; color: #FFFFFF; margin-top: .15rem; word-break: break-word; overflow-wrap: anywhere; }
 .dp-rs { font-size: .82rem; color: #9AA6B8; margin-top: .2rem; font-weight: 300; }
 
-/* ============ REFERENCE STRIP ============ */
-.dp-ref {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1rem; padding: .4rem 0 .6rem;
-    animation: dpFadeUp 0.55s ease-out 0.08s both;
-}
-.dp-rk {
-    font-size: .72rem; letter-spacing: .18em; text-transform: uppercase;
-    color: #8794AB; font-weight: 500;
-}
-.dp-rv {
-    font-size: 1.9rem; font-weight: 500; color: #FFFFFF;
-    text-shadow: 0 0 24px rgba(77,166,255,.30); margin-top: .15rem;
-    word-break: break-word; overflow-wrap: anywhere;
-}
+/* REFERENCE STRIP */
+.dp-ref { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding: .4rem 0 .6rem; animation: dpFadeUp 0.55s ease-out 0.08s both; }
+.dp-rk { font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: #8794AB; font-weight: 500; }
+.dp-rv { font-size: 1.9rem; font-weight: 500; color: #FFFFFF; text-shadow: 0 0 24px rgba(77,166,255,.30); margin-top: .15rem; word-break: break-word; overflow-wrap: anywhere; }
 
-/* ============ ALTERNATIVE HEADER ============ */
-.dp-alt {
-    font-size: 1.6rem; font-weight: 700; margin: 1.1rem 0 .25rem; color: #FFFFFF;
-    word-break: break-word; overflow-wrap: anywhere;
-    animation: dpFadeUp 0.5s ease-out both;
-}
-.dp-meta {
-    color: #A9B6CB; font-size: .95rem; margin-bottom: .4rem; font-weight: 300;
-    animation: dpFadeUp 0.5s ease-out 0.05s both;
-}
+/* ALTERNATIVE HEADER */
+.dp-alt { font-size: 1.6rem; font-weight: 700; margin: 1.1rem 0 .25rem; color: #FFFFFF; word-break: break-word; overflow-wrap: anywhere; animation: dpFadeUp 0.5s ease-out both; }
+.dp-meta { color: #A9B6CB; font-size: .95rem; margin-bottom: .4rem; font-weight: 300; animation: dpFadeUp 0.5s ease-out 0.05s both; }
 .dp-meta b { color: #8ED8FF; font-weight: 500; }
-.dp-why {
-    font-size: .85rem; color: #8E9BB0; margin: 0 0 1rem;
-    font-weight: 300; line-height: 1.55;
-    animation: dpFadeUp 0.5s ease-out 0.1s both;
-}
+.dp-why { font-size: .85rem; color: #8E9BB0; margin: 0 0 1rem; font-weight: 300; line-height: 1.55; animation: dpFadeUp 0.5s ease-out 0.1s both; }
 .dp-why b { color: #8ED8FF; font-weight: 500; }
 
-/* ============ OUTCOME ============ */
-.dp-done {
-    border: 1px solid rgba(142,216,255,.35); color: #8ED8FF;
-    padding: .8rem 1rem; border-radius: 12px; background: rgba(20,45,75,.25);
-    animation: dpFadeUp 0.5s ease-out both;
-}
-.dp-ask {
-    margin: .4rem 0 1rem;
-    animation: dpFadeUp 0.5s ease-out both;
-}
+/* OUTCOME */
+.dp-done { border: 1px solid rgba(142,216,255,.35); color: #8ED8FF; padding: .8rem 1rem; border-radius: 12px; background: rgba(20,45,75,.25); animation: dpFadeUp 0.5s ease-out both; }
+.dp-ask { margin: .4rem 0 1rem; animation: dpFadeUp 0.5s ease-out both; }
 .dp-ask-title { font-size: 1rem; font-weight: 500; color: #E8EEF8; margin-bottom: .2rem; }
 .dp-ask-sub { font-size: .85rem; font-weight: 300; color: #8E9BB0; font-style: italic; }
 
-/* ============ PILOT ============ */
-.dp-pilot {
-    margin-top: 2.4rem;
-    animation: dpFadeUp 0.6s ease-out 0.2s both;
-}
+/* PILOT */
+.dp-pilot { margin-top: 2.4rem; animation: dpFadeUp 0.6s ease-out 0.2s both; }
 .dp-pl { font-size: .7rem; letter-spacing: .24em; color: #8794AB; }
 .dp-pn2 { font-size: 1.5rem; font-weight: 300; color: #FFFFFF; }
 .dp-pn2 span { font-size: .72rem; letter-spacing: .18em; color: #8794AB; }
-.dp-bar {
-    height: 4px; border-radius: 99px; background: rgba(255,255,255,.10);
-    margin-top: .5rem; overflow: hidden;
-}
-.dp-bar > div {
-    height: 100%;
-    background: linear-gradient(90deg, #4DA6FF, #8FE9FF);
-    box-shadow: 0 0 10px #4DA6FF;
-    transition: width 1.2s cubic-bezier(.2,.8,.2,1);
-}
+.dp-bar { height: 4px; border-radius: 99px; background: rgba(255,255,255,.10); margin-top: .5rem; overflow: hidden; }
+.dp-bar > div { height: 100%; background: linear-gradient(90deg, #4DA6FF, #8FE9FF); box-shadow: 0 0 10px #4DA6FF; transition: width 1.2s cubic-bezier(.2,.8,.2,1); }
 
-/* ============ SEARCH (searchbox) ============ */
+/* SEARCH */
 div[data-baseweb="select"] > div {
     background: rgba(20,32,52,.55) !important;
     border: 1px solid rgba(142,216,255,.20) !important;
-    border-radius: 12px !important;
-    min-height: 3.2rem;
+    border-radius: 12px !important; min-height: 3.2rem;
     transition: all .25s cubic-bezier(.2,.8,.2,1);
 }
-div[data-baseweb="select"] > div:hover {
-    border-color: rgba(143,233,255,.45) !important;
-    box-shadow: 0 0 20px rgba(77,166,255,.12);
-}
-div[data-baseweb="select"] > div:focus-within {
-    border-color: #8FE9FF !important;
-    box-shadow: 0 0 0 1px rgba(143,233,255,.5), 0 0 24px rgba(77,166,255,.28) !important;
-}
+div[data-baseweb="select"] > div:hover { border-color: rgba(143,233,255,.45) !important; box-shadow: 0 0 20px rgba(77,166,255,.12); }
+div[data-baseweb="select"] > div:focus-within { border-color: #8FE9FF !important; box-shadow: 0 0 0 1px rgba(143,233,255,.5), 0 0 24px rgba(77,166,255,.28) !important; }
 
-/* ============ HIDE RADIO BULATAN ============ */
+/* HIDE RADIO BULATAN */
 [data-testid="stRadio"] label > div:first-child,
 [data-testid="stRadio"] label > div[role="presentation"],
 [data-testid="stRadio"] [data-baseweb="radio"] > div:first-child,
 [data-testid="stRadio"] [data-baseweb="radio"] > div[role="presentation"],
 [data-testid="stRadio"] label input[type="radio"],
 [data-testid="stRadio"] label [data-testid="stMarkdownContainer"] ~ div {
-    display: none !important;
-    visibility: hidden !important;
-    width: 0 !important;
-    min-width: 0 !important;
-    max-width: 0 !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    position: absolute !important;
-    left: -9999px !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
+    display: none !important; visibility: hidden !important;
+    width: 0 !important; min-width: 0 !important; max-width: 0 !important;
+    height: 0 !important; min-height: 0 !important;
+    margin: 0 !important; padding: 0 !important;
+    position: absolute !important; left: -9999px !important;
+    opacity: 0 !important; pointer-events: none !important;
 }
 
-/* ============ RADIO AS TABS (with hover lift) ============ */
+/* RADIO AS TABS */
 [data-testid="stRadio"] > div[role="radiogroup"] {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    gap: .3rem !important;
-    overflow-x: auto;
-    padding: 0 0 .5rem 0;
-    border-bottom: 1px solid rgba(150,200,255,.12);
-    margin-bottom: 1.2rem;
-    scrollbar-width: thin;
-    max-width: 100% !important;
-    box-sizing: border-box;
+    display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important;
+    gap: .3rem !important; overflow-x: auto; padding: 0 0 .5rem 0;
+    border-bottom: 1px solid rgba(150,200,255,.12); margin-bottom: 1.2rem;
+    scrollbar-width: thin; max-width: 100% !important; box-sizing: border-box;
     animation: dpFadeUp 0.5s ease-out 0.12s both;
 }
 [data-testid="stRadio"] > div[role="radiogroup"]::-webkit-scrollbar { height: 4px; }
-[data-testid="stRadio"] > div[role="radiogroup"]::-webkit-scrollbar-thumb {
-    background: rgba(142,216,255,.2); border-radius: 2px;
-}
+[data-testid="stRadio"] > div[role="radiogroup"]::-webkit-scrollbar-thumb { background: rgba(142,216,255,.2); border-radius: 2px; }
 [data-testid="stRadio"] label {
-    background: transparent !important;
-    color: #8E9BB0 !important;
-    padding: .65rem 1.05rem !important;
-    white-space: nowrap;
-    border-radius: 10px 10px 0 0;
-    transition: all .25s cubic-bezier(.2,.8,.2,1);
-    cursor: pointer;
-    margin: 0 !important;
-    border: none !important;
-    min-height: auto !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 0 !important;
+    background: transparent !important; color: #8E9BB0 !important;
+    padding: .65rem 1.05rem !important; white-space: nowrap;
+    border-radius: 10px 10px 0 0; transition: all .25s cubic-bezier(.2,.8,.2,1);
+    cursor: pointer; margin: 0 !important; border: none !important; min-height: auto !important;
+    display: inline-flex !important; align-items: center !important; gap: 0 !important;
 }
-[data-testid="stRadio"] label:hover {
-    color: #FFFFFF !important;
-    background: rgba(77,166,255,.08) !important;
-    transform: translateY(-2px);
-}
+[data-testid="stRadio"] label:hover { color: #FFFFFF !important; background: rgba(77,166,255,.08) !important; transform: translateY(-2px); }
 [data-testid="stRadio"] label:has(input:checked) {
-    color: #FFFFFF !important;
-    background: rgba(77,166,255,.11) !important;
+    color: #FFFFFF !important; background: rgba(77,166,255,.11) !important;
     text-shadow: 0 0 14px rgba(77,166,255,.55);
     box-shadow: inset 0 -2px 0 #4DA6FF, 0 0 12px rgba(77,166,255,.25);
 }
-[data-testid="stRadio"] label p {
-    font-size: .9rem !important;
-    font-weight: 500 !important;
-    margin: 0 !important;
-}
+[data-testid="stRadio"] label p { font-size: .9rem !important; font-weight: 500 !important; margin: 0 !important; }
 [data-testid="stRadio"] > label:first-child { display: none !important; }
 
-/* ============ BUTTONS (with hover lift) ============ */
+/* MAIN NAV TABS (native st.tabs) */
+.stTabs [data-baseweb="tab-list"] {
+    gap: .4rem !important; overflow-x: auto; flex-wrap: nowrap;
+    border-bottom: 1px solid rgba(150,200,255,.12);
+    margin-bottom: 1.4rem;
+    animation: dpFadeUp 0.5s ease-out both;
+}
+.stTabs [data-baseweb="tab"] {
+    background: transparent !important; color: #8E9BB0 !important;
+    padding: .75rem 1.25rem !important; white-space: nowrap;
+    border-radius: 12px 12px 0 0; transition: all .25s ease; font-weight: 500;
+}
+.stTabs [data-baseweb="tab"]:hover { color: #FFFFFF !important; background: rgba(77,166,255,.06) !important; }
+.stTabs [aria-selected="true"] {
+    color: #FFFFFF !important; background: rgba(77,166,255,.12) !important;
+    text-shadow: 0 0 14px rgba(77,166,255,.55);
+}
+.stTabs [data-baseweb="tab-highlight"] { background: #4DA6FF !important; height: 2px !important; box-shadow: 0 0 12px #4DA6FF; }
+.stTabs [data-baseweb="tab-border"] { background: transparent !important; }
+
+/* BUTTONS */
 div.stButton > button {
     width: 100%; min-height: 3rem; border-radius: 12px;
     background: rgba(255,255,255,.05); color: #FFFFFF;
     border: 1px solid rgba(150,200,255,.18);
-    transition: all .25s cubic-bezier(.2,.8,.2,1);
-    font-weight: 500;
-    word-break: break-word;
+    transition: all .25s cubic-bezier(.2,.8,.2,1); font-weight: 500; word-break: break-word;
 }
 div.stButton > button:hover {
-    border-color: #4DA6FF;
-    background: rgba(77,166,255,.12);
-    color: #FFFFFF;
+    border-color: #4DA6FF; background: rgba(77,166,255,.12); color: #FFFFFF;
     box-shadow: 0 0 22px rgba(77,166,255,.25), 0 8px 20px rgba(0,0,0,.30);
     transform: translateY(-2px);
 }
-div.stButton > button:active {
-    transform: translateY(0);
+div.stButton > button:active { transform: translateY(0); }
+
+/* ============ ANALYTICS ============ */
+.dp-an-h2 { font-size: 1.6rem; font-weight: 700; color: #FFFFFF; margin: 0 0 .35rem; animation: dpFadeUp 0.5s ease-out both; }
+.dp-an-it { font-style: italic; font-weight: 300; color: #B4C0D4; margin-bottom: 1.5rem; animation: dpFadeUp 0.5s ease-out 0.05s both; }
+.dp-an-empty {
+    padding: 3rem 1.5rem; text-align: center;
+    background: rgba(255,255,255,.03);
+    border: 1px dashed rgba(142,216,255,.22);
+    border-radius: 14px; color: #8E9BB0;
+    font-size: .95rem; font-weight: 300;
+    animation: dpFadeUp 0.5s ease-out both;
 }
 
-/* ============ MOBILE ============ */
-@media (max-width: 768px) {
-    .block-container { padding: 0.5rem 0.9rem 4rem; }
-    .dp-head { padding: 1.4rem 0 0.8rem; }
-    .dp-title { font-size: 1.5rem; }
-    .dp-sub { font-size: .92rem; margin-top: .5rem; }
-    .dp-sub-part2 { font-size: .88rem; }
-    .dp-ref {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: .5rem;
-    }
-    .dp-rv { font-size: 1rem; word-break: break-word; overflow-wrap: anywhere; }
-    .dp-rt { word-break: break-word; overflow-wrap: anywhere; }
-    .dp-alt { font-size: 1.3rem; }
-    .dp-reco .dp-rt { font-size: 1.15rem; }
-    [data-testid="stRadio"] label { padding: .55rem .85rem !important; }
-    [data-testid="stRadio"] label p { font-size: .82rem !important; }
-    [data-testid="stRadio"] label:hover { transform: translateY(-1px); }
+.dp-kpi-row {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .9rem; margin: .5rem 0 1.8rem;
+}
+.dp-kpi {
+    background: rgba(255,255,255,.035);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(142,216,255,.12);
+    border-radius: 14px; padding: 1rem 1.15rem;
+    box-shadow: 0 12px 40px rgba(0,0,0,.25), 0 0 30px rgba(80,150,255,.04);
+    animation: dpFadeUp 0.55s ease-out both;
+    transition: border-color .3s ease, box-shadow .3s ease;
+}
+.dp-kpi:nth-child(1) { animation-delay: 0.05s; }
+.dp-kpi:nth-child(2) { animation-delay: 0.10s; }
+.dp-kpi:nth-child(3) { animation-delay: 0.15s; }
+.dp-kpi:nth-child(4) { animation-delay: 0.20s; }
+.dp-kpi:hover { border-color: rgba(142,216,255,.25); box-shadow: 0 12px 40px rgba(0,0,0,.35), 0 0 36px rgba(80,150,255,.10); }
+.dp-kpi-label { font-size: .68rem; letter-spacing: .18em; color: #8794AB; text-transform: uppercase; font-weight: 600; }
+.dp-kpi-value { font-size: 2rem; font-weight: 600; color: #FFFFFF; margin-top: .5rem; line-height: 1; letter-spacing: -.02em; }
+.dp-kpi-value.blue { color: #8ED8FF; text-shadow: 0 0 22px rgba(142,216,255,.35); }
+.dp-kpi-value.green { color: #4ADE80; text-shadow: 0 0 22px rgba(74,222,128,.35); }
+.dp-kpi-value.amber { color: #F5B84B; text-shadow: 0 0 22px rgba(245,184,75,.35); }
+.dp-kpi-sub { font-size: .75rem; color: #8E9BB0; margin-top: .45rem; font-weight: 300; }
+
+.dp-an-section {
+    font-size: .9rem; font-weight: 600; color: #8ED8FF;
+    letter-spacing: .02em; margin: .8rem 0 .6rem;
+    animation: dpFadeUp 0.5s ease-out both;
 }
 
-/* ============ REDUCE MOTION ============ */
+/* reduce motion */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
@@ -643,12 +408,34 @@ div.stButton > button:active {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* MOBILE */
+@media (max-width: 768px) {
+    .block-container { padding: 0.5rem 0.9rem 4rem; }
+    .dp-head { padding: 1.4rem 0 0.8rem; }
+    .dp-title { font-size: 1.5rem; }
+    .dp-sub { font-size: .92rem; margin-top: .5rem; }
+    .dp-sub-part2 { font-size: .88rem; }
+    .dp-ref { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+    .dp-rv { font-size: 1rem; word-break: break-word; overflow-wrap: anywhere; }
+    .dp-rt { word-break: break-word; overflow-wrap: anywhere; }
+    .dp-alt { font-size: 1.3rem; }
+    .dp-reco .dp-rt { font-size: 1.15rem; }
+    [data-testid="stRadio"] label { padding: .55rem .85rem !important; }
+    [data-testid="stRadio"] label p { font-size: .82rem !important; }
+    [data-testid="stRadio"] label:hover { transform: translateY(-1px); }
+    .dp-kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+    .dp-kpi { padding: .85rem .95rem; }
+    .dp-kpi-value { font-size: 1.5rem; }
+    .dp-kpi-value[style] { font-size: .95rem !important; }
+    .stTabs [data-baseweb="tab"] { padding: .65rem 1rem !important; font-size: .9rem; }
+}
 </style>
 """, unsafe_allow_html=True)
 
 
 # ============================================
-# JS SAFETY NET — reset scroll
+# JS SAFETY NET
 # ============================================
 components.html("""
 <script>
@@ -656,18 +443,14 @@ components.html("""
     const doc = window.parent.document;
     const resetScroll = () => {
         const targets = [
-            doc.documentElement,
-            doc.body,
+            doc.documentElement, doc.body,
             doc.querySelector('.stApp'),
             doc.querySelector('[data-testid="stAppViewContainer"]'),
             doc.querySelector('[data-testid="stMain"]'),
             doc.querySelector('[data-testid="stVerticalBlock"]')
         ];
         targets.forEach(el => {
-            if (el) {
-                el.scrollLeft = 0;
-                el.scrollTo && el.scrollTo({ left: 0, behavior: 'instant' });
-            }
+            if (el) { el.scrollLeft = 0; el.scrollTo && el.scrollTo({ left: 0, behavior: 'instant' }); }
         });
     };
     resetScroll();
@@ -679,9 +462,7 @@ components.html("""
         }
     }, true);
     doc.addEventListener('scroll', (e) => {
-        if (e.target === doc.documentElement || e.target === doc.body) {
-            resetScroll();
-        }
+        if (e.target === doc.documentElement || e.target === doc.body) resetScroll();
     }, true);
     const observer = new MutationObserver(() => resetScroll());
     observer.observe(doc.body, { childList: true, subtree: false });
@@ -691,7 +472,7 @@ components.html("""
 
 
 # ============================================
-# 0. OVERRIDE KHUSUS
+# OVERRIDE KHUSUS
 # ============================================
 OVERRIDE_TOP = {
     "Poco X8 5G": "Xiaomi Redmi Note 17 Pro 5G",
@@ -699,7 +480,7 @@ OVERRIDE_TOP = {
 
 
 # ============================================
-# 1. BOBOT SKOR
+# BOBOT SKOR
 # ============================================
 W_HARGA = 25
 W_TIER = 15
@@ -937,13 +718,9 @@ def buat_script(ref_nama, alt_row, mode, selisih, h=None):
     poin = [p for p in poin if p]
 
     kal = [f"Kak, {ref_nama} {kondisi}."]
-
     if target:
         target_ringkas = target.split(",")[0].strip().lower()
-        kal.append(
-            f"Kalau Kakak sedang cari HP untuk {target_ringkas}, "
-            "saya punya satu alternatif menarik untuk dipertimbangkan."
-        )
+        kal.append(f"Kalau Kakak sedang cari HP untuk {target_ringkas}, saya punya satu alternatif menarik untuk dipertimbangkan.")
     else:
         kal.append("Tapi saya punya satu alternatif menarik untuk dipertimbangkan.")
 
@@ -963,45 +740,25 @@ def buat_script(ref_nama, alt_row, mode, selisih, h=None):
                 continue
             tl = teks.lower()
             if "chipset" in tl:
-                spec_match.append(kecil(teks))
-                chip_match = True
+                spec_match.append(kecil(teks)); chip_match = True
             elif "tier sama" in tl:
                 spec_match.append(kecil(teks))
 
     if chip_match and spec_match:
-        kal.append(
-            f"Kebetulan spesifikasi intinya juga sejalan — {gabung_teks(spec_match[:2])}. "
-            "Jadi dari sisi kebutuhan, tidak jauh berbeda dengan yang Kakak cari."
-        )
+        kal.append(f"Kebetulan spesifikasi intinya juga sejalan — {gabung_teks(spec_match[:2])}. Jadi dari sisi kebutuhan, tidak jauh berbeda dengan yang Kakak cari.")
     elif spec_match:
-        kal.append(
-            f"Menariknya, {gabung_teks(spec_match[:2])} — "
-            "jadi secara kelas produk, sepadan dengan yang Kakak cari."
-        )
+        kal.append(f"Menariknya, {gabung_teks(spec_match[:2])} — jadi secara kelas produk, sepadan dengan yang Kakak cari.")
     elif chip:
         kal.append(f"Dari sisi prosesor, produk ini pakai {chip}.")
 
     if selisih < -500000:
-        kal.append(
-            f"Bahkan harganya lebih hemat {rp(abs(selisih))} dibanding {ref_nama}, "
-            "jadi Kakak dapat spesifikasi yang sepadan dengan harga lebih ringan."
-        )
+        kal.append(f"Bahkan harganya lebih hemat {rp(abs(selisih))} dibanding {ref_nama}, jadi Kakak dapat spesifikasi yang sepadan dengan harga lebih ringan.")
     elif selisih > 500000:
-        kal.append(
-            f"Memang ada selisih sekitar {rp(selisih)} dari {ref_nama}, "
-            "tapi tambahan itu sepadan dengan peningkatan yang Kakak dapat, "
-            "bukan sekadar beda harga."
-        )
+        kal.append(f"Memang ada selisih sekitar {rp(selisih)} dari {ref_nama}, tapi tambahan itu sepadan dengan peningkatan yang Kakak dapat, bukan sekadar beda harga.")
     else:
-        kal.append(
-            f"Harganya di kisaran yang sama dengan {ref_nama}, "
-            "jadi tidak ada trade-off harga yang perlu dipikirkan."
-        )
+        kal.append(f"Harganya di kisaran yang sama dengan {ref_nama}, jadi tidak ada trade-off harga yang perlu dipikirkan.")
 
-    kal.append(
-        "Kalau Kakak berkenan, saya bisa tunjukkan unitnya langsung "
-        "supaya bisa kita bandingkan bareng-bareng."
-    )
+    kal.append("Kalau Kakak berkenan, saya bisa tunjukkan unitnya langsung supaya bisa kita bandingkan bareng-bareng.")
     return " ".join(kal)
 
 
@@ -1021,7 +778,7 @@ def tabel_banding(ref, alt):
 
 
 # ============================================
-# 2. LOGGING
+# LOGGING
 # ============================================
 WIB = timezone(timedelta(hours=7))
 LOG_HEADER = [
@@ -1037,13 +794,10 @@ def get_log_sheet():
     try:
         import gspread
         from google.oauth2.service_account import Credentials
-
         creds = Credentials.from_service_account_info(
             dict(st.secrets["gcp_service_account"]),
-            scopes=[
-                "https://www.googleapis.com/auth/spreadsheets",
-                "https://www.googleapis.com/auth/drive",
-            ],
+            scopes=["https://www.googleapis.com/auth/spreadsheets",
+                    "https://www.googleapis.com/auth/drive"],
         )
         gc = gspread.authorize(creds)
         sh = gc.open_by_key(st.secrets["gsheets"]["spreadsheet_id"])
@@ -1101,8 +855,32 @@ def hitung_total_attempt():
     return 0
 
 
+@st.cache_data(ttl=30)
+def muat_log_df():
+    """Load semua baris log dari Sheets (fallback CSV). Return DataFrame."""
+    ws, _ = get_log_sheet()
+    if ws is not None:
+        try:
+            values = ws.get_all_values(value_render_option="UNFORMATTED_VALUE")
+            if not values or len(values) < 2:
+                return pd.DataFrame(columns=LOG_HEADER)
+            header = [str(h).strip() for h in values[0]]
+            rows = values[1:]
+            n = len(header)
+            rows = [(list(r) + [""] * n)[:n] for r in rows]
+            return pd.DataFrame(rows, columns=header)
+        except Exception:
+            pass
+    if os.path.exists(LOCAL_LOG_FILE):
+        try:
+            return pd.read_csv(LOCAL_LOG_FILE, dtype=str)
+        except Exception:
+            pass
+    return pd.DataFrame(columns=LOG_HEADER)
+
+
 # ============================================
-# 3. LOAD DATA
+# LOAD DATA PRODUK
 # ============================================
 SKIP_SHEETS = ["Panduan", "Master", "Notes", "Template", "Sheet1", "Log"]
 
@@ -1139,13 +917,10 @@ def get_data_book():
     try:
         import gspread
         from google.oauth2.service_account import Credentials
-
         creds = Credentials.from_service_account_info(
             dict(st.secrets["gcp_service_account"]),
-            scopes=[
-                "https://www.googleapis.com/auth/spreadsheets",
-                "https://www.googleapis.com/auth/drive",
-            ],
+            scopes=["https://www.googleapis.com/auth/spreadsheets",
+                    "https://www.googleapis.com/auth/drive"],
         )
         gc = gspread.authorize(creds)
         sid = st.secrets["gsheets"].get("data_spreadsheet_id") or st.secrets["gsheets"]["spreadsheet_id"]
@@ -1164,11 +939,9 @@ def load_data():
             df_toko, df_komp = susun_data(sheets)
             return df_toko, df_komp, "Google Sheets", None
         except ValueError:
-            catatan = ("Google Sheets belum berisi data produk. "
-                       "Sementara memakai data_hp.xlsx.")
+            catatan = "Google Sheets belum berisi data produk. Sementara memakai data_hp.xlsx."
         except Exception as e:
-            catatan = (f"Gagal membaca Google Sheets ({e}). "
-                       "Sementara memakai data_hp.xlsx, harga bisa jadi bukan yang terbaru.")
+            catatan = f"Gagal membaca Google Sheets ({e}). Sementara memakai data_hp.xlsx."
     sheets_dict = pd.read_excel("data_hp.xlsx", sheet_name=None)
     df_toko, df_komp = susun_data(sheets_dict)
     return df_toko, df_komp, "Excel (data_hp.xlsx)", catatan
@@ -1178,7 +951,7 @@ with st.spinner("Menyiapkan data produk..."):
     try:
         df_toko, df_kompetitor, sumber_data, catatan_data = load_data()
     except FileNotFoundError:
-        st.error("⚠️ Data produk tidak ditemukan. Isi tab produk di Google Sheets atau upload data_hp.xlsx.")
+        st.error("⚠️ Data produk tidak ditemukan.")
         st.stop()
     except Exception as e:
         st.error(f"⚠️ Error baca data: {e}")
@@ -1196,7 +969,7 @@ pilihan_unik = sorted(pilihan_toko + pilihan_kompetitor)
 
 
 # ============================================
-# 4. UI RENDERERS
+# UI HELPERS
 # ============================================
 def esc(x):
     return html.escape(str(x))
@@ -1238,7 +1011,6 @@ def render_alternatif(ref, h, mode):
         )
 
     kiri, kanan = st.columns(2, gap="medium")
-
     poin = [clean(row.get(f"Kelebihan_{i}")) for i in (1, 2, 3)]
     isi = "".join(
         f'<div class="dp-pt"><span>✅</span><span>{esc(p)}</span></div>' for p in poin if p
@@ -1310,7 +1082,181 @@ def render_pilot():
 
 
 # ============================================
-# 5. SIDEBAR
+# ANALYTICS DASHBOARD
+# ============================================
+def _style_chart(chart):
+    return chart.configure_view(strokeWidth=0).configure_axis(
+        grid=False, domain=False,
+    ).configure(background="transparent")
+
+
+def render_analytics():
+    st.markdown(
+        '<div class="dp-an-h2">📊 Analytics Dashboard</div>'
+        '<div class="dp-an-it">Ringkasan performa pilot switch-selling Digiplus</div>',
+        unsafe_allow_html=True,
+    )
+
+    df_log = muat_log_df()
+
+    if df_log.empty or "Event" not in df_log.columns:
+        st.markdown(
+            '<div class="dp-an-empty">📭 Belum ada data pilot.<br>'
+            'Lakukan beberapa pencarian di tab <b>Sales Assistant</b> dulu.</div>',
+            unsafe_allow_html=True,
+        )
+        return
+
+    attempts = df_log[df_log["Event"].astype(str) == "attempt"].copy()
+    outcomes = df_log[df_log["Event"].astype(str) == "outcome"].copy()
+
+    total_attempts = len(attempts)
+    total_outcomes = len(outcomes)
+
+    berhasil_set = {"Berhasil menjual", "Switch berhasil"}
+    berhasil = outcomes[outcomes["Hasil"].astype(str).isin(berhasil_set)]
+    switch_rate = (len(berhasil) / total_outcomes * 100) if total_outcomes > 0 else 0.0
+
+    if "Produk_Dicari" in attempts.columns and total_attempts > 0:
+        top_list = attempts["Produk_Dicari"].value_counts()
+        top_produk = top_list.index[0] if len(top_list) > 0 else "—"
+        produk_unik = attempts["Produk_Dicari"].nunique()
+    else:
+        top_produk = "—"
+        produk_unik = 0
+
+    # KPI cards
+    st.markdown(
+        f'<div class="dp-kpi-row">'
+        f'<div class="dp-kpi">'
+        f'<div class="dp-kpi-label">Total Attempts</div>'
+        f'<div class="dp-kpi-value blue">{total_attempts}</div>'
+        f'<div class="dp-kpi-sub">dari target {TARGET_ATTEMPTS}</div>'
+        f'</div>'
+        f'<div class="dp-kpi">'
+        f'<div class="dp-kpi-label">Switch Rate</div>'
+        f'<div class="dp-kpi-value green">{switch_rate:.0f}%</div>'
+        f'<div class="dp-kpi-sub">{len(berhasil)} berhasil dari {total_outcomes} outcome</div>'
+        f'</div>'
+        f'<div class="dp-kpi">'
+        f'<div class="dp-kpi-label">Produk Unik Dicari</div>'
+        f'<div class="dp-kpi-value">{produk_unik}</div>'
+        f'<div class="dp-kpi-sub">variasi customer request</div>'
+        f'</div>'
+        f'<div class="dp-kpi">'
+        f'<div class="dp-kpi-label">Top Produk</div>'
+        f'<div class="dp-kpi-value" style="font-size:1.05rem;line-height:1.3;margin-top:.55rem">'
+        f'{esc(top_produk)}</div>'
+        f'<div class="dp-kpi-sub">paling sering dicari</div>'
+        f'</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    # Row 1: Attempts per hari + Top Alternatif
+    c1, c2 = st.columns(2, gap="medium")
+
+    with c1:
+        st.markdown('<div class="dp-an-section">📈 Attempts per Hari</div>', unsafe_allow_html=True)
+        try:
+            att = attempts.copy()
+            att["Tanggal"] = pd.to_datetime(att["Timestamp"], errors="coerce").dt.date
+            daily = att.dropna(subset=["Tanggal"]).groupby("Tanggal").size().reset_index(name="Jumlah")
+            if not daily.empty:
+                chart = alt.Chart(daily).mark_line(
+                    color="#4DA6FF", strokeWidth=2.5,
+                    point=alt.OverlayMarkDef(color="#8FE9FF", size=70, filled=True, strokeWidth=0),
+                ).encode(
+                    x=alt.X("Tanggal:T", title=None, axis=alt.Axis(
+                        format="%d %b", labelColor="#A9B6CB", grid=False,
+                        domain=False, tickColor="rgba(255,255,255,0.1)")),
+                    y=alt.Y("Jumlah:Q", title=None, axis=alt.Axis(
+                        labelColor="#A9B6CB", grid=False, domain=False,
+                        tickColor="rgba(255,255,255,0.1)")),
+                ).properties(height=220)
+                st.altair_chart(_style_chart(chart), use_container_width=True)
+            else:
+                st.caption("Belum ada data timestamp.")
+        except Exception:
+            st.caption("Belum ada data timestamp.")
+
+    with c2:
+        st.markdown('<div class="dp-an-section">🎯 Top 5 Alternatif Direkomendasikan</div>', unsafe_allow_html=True)
+        alt_cols = [c for c in ["Alternatif_1", "Alternatif_2", "Alternatif_3"] if c in attempts.columns]
+        all_alt = []
+        for col in alt_cols:
+            all_alt.extend([str(a).strip() for a in attempts[col].dropna().tolist()
+                            if a and str(a).strip()])
+        if all_alt:
+            top_alt = pd.Series(all_alt).value_counts().head(5).reset_index()
+            top_alt.columns = ["Alternatif", "Jumlah"]
+            chart = alt.Chart(top_alt).mark_bar(
+                color="#8FE9FF", cornerRadiusEnd=6,
+            ).encode(
+                y=alt.Y("Alternatif:N", sort="-x", title=None, axis=alt.Axis(
+                    labelColor="#E8EEF8", grid=False, domain=False,
+                    tickColor="rgba(255,255,255,0.1)", labelLimit=220)),
+                x=alt.X("Jumlah:Q", title=None, axis=alt.Axis(
+                    labelColor="#A9B6CB", grid=False, domain=False,
+                    tickColor="rgba(255,255,255,0.1)")),
+            ).properties(height=220)
+            st.altair_chart(_style_chart(chart), use_container_width=True)
+        else:
+            st.caption("Belum ada data alternatif.")
+
+    # Row 2: Donut outcome + Top 10 produk
+    c3, c4 = st.columns(2, gap="medium")
+
+    with c3:
+        st.markdown('<div class="dp-an-section">🥧 Distribusi Outcome</div>', unsafe_allow_html=True)
+        if not outcomes.empty and "Hasil" in outcomes.columns:
+            oc = outcomes["Hasil"].astype(str).value_counts().reset_index()
+            oc.columns = ["Hasil", "Jumlah"]
+            if not oc.empty:
+                color_scale = alt.Scale(
+                    domain=["Berhasil menjual", "Switch berhasil",
+                            "Tertarik namun masih ragu", "Tertarik lihat alternatif",
+                            "Belum berhasil", "Tidak jadi"],
+                    range=["#4ADE80", "#4ADE80", "#F5B84B", "#4ADE80", "#E31E24", "#E31E24"],
+                )
+                chart = alt.Chart(oc).mark_arc(
+                    innerRadius=60, outerRadius=110,
+                    stroke="#0A1424", strokeWidth=2,
+                ).encode(
+                    theta=alt.Theta("Jumlah:Q"),
+                    color=alt.Color("Hasil:N", scale=color_scale, legend=alt.Legend(
+                        labelColor="#A9B6CB", title=None, orient="bottom", columns=1)),
+                    tooltip=["Hasil", "Jumlah"],
+                ).properties(height=280)
+                st.altair_chart(_style_chart(chart), use_container_width=True)
+            else:
+                st.caption("Belum ada outcome yang tercatat.")
+        else:
+            st.caption("Belum ada outcome yang tercatat.")
+
+    with c4:
+        st.markdown('<div class="dp-an-section">🔥 Top 10 Produk Paling Dicari</div>', unsafe_allow_html=True)
+        if "Produk_Dicari" in attempts.columns and total_attempts > 0:
+            tp = attempts["Produk_Dicari"].value_counts().head(10).reset_index()
+            tp.columns = ["Produk", "Jumlah"]
+            if not tp.empty:
+                chart = alt.Chart(tp).mark_bar(
+                    color="#4DA6FF", cornerRadiusEnd=6,
+                ).encode(
+                    y=alt.Y("Produk:N", sort="-x", title=None, axis=alt.Axis(
+                        labelColor="#E8EEF8", grid=False, domain=False,
+                        tickColor="rgba(255,255,255,0.1)", labelLimit=220)),
+                    x=alt.X("Jumlah:Q", title=None, axis=alt.Axis(
+                        labelColor="#A9B6CB", grid=False, domain=False,
+                        tickColor="rgba(255,255,255,0.1)")),
+                ).properties(height=280)
+                st.altair_chart(_style_chart(chart), use_container_width=True)
+        else:
+            st.caption("Belum ada data produk dicari.")
+
+
+# ============================================
+# SIDEBAR
 # ============================================
 with st.sidebar:
     st.caption(f"Sumber data produk: {sumber_data}")
@@ -1325,137 +1271,146 @@ with st.sidebar:
 
 
 # ============================================
-# 6. HEADER + SEARCH
+# HEADER + MAIN NAV
 # ============================================
 render_header()
-st.markdown(
-    '<div class="dp-h2">🔎 HP apa yang sedang kosong?</div>'
-    '<div class="dp-it">Biar aku bantu cariin penggantinya lengkap dengan cara jualan 😊</div>',
-    unsafe_allow_html=True,
-)
 
-
-def search_hp(searchterm: str):
-    if not searchterm:
-        return pilihan_unik
-    return [hp for hp in pilihan_unik if searchterm.lower() in hp.lower()]
-
-
-pilihan_customer = st_searchbox(
-    search_hp,
-    label="🔎 Cari HP yang sedang kosong:",
-    placeholder="Ketik atau pilih nama HP...",
-    key="search_hp",
-    default_options=pilihan_unik,
-)
-
-TOP_N = 4
-TOL_RP = 2500000
+tab_sa, tab_an = st.tabs(["🎯 Sales Assistant", "📊 Analytics Dashboard"])
 
 
 # ============================================
-# 7. LOGIC UTAMA
+# TAB 1: SALES ASSISTANT
 # ============================================
-if pilihan_customer:
-    try:
-        if pilihan_customer in pilihan_toko:
-            mode = "toko"
-            ref = df_toko[df_toko["Nama_Lengkap"] == pilihan_customer].iloc[0]
-        elif pilihan_customer in pilihan_kompetitor:
-            mode = "kompetitor"
-            ref = df_kompetitor[df_kompetitor["Nama_Lengkap"] == pilihan_customer].iloc[0]
-        else:
-            st.error("Produk tidak ditemukan di database.")
-            st.stop()
+with tab_sa:
+    st.markdown(
+        '<div class="dp-h2">🔎 HP apa yang sedang kosong?</div>'
+        '<div class="dp-it">Biar aku bantu cariin penggantinya lengkap dengan cara jualan 😊</div>',
+        unsafe_allow_html=True,
+    )
 
-        if pd.isna(pd.to_numeric(ref["Harga"], errors="coerce")):
-            st.error("Harga produk ini belum diisi, sehingga alternatif belum bisa dicari.")
-            st.stop()
+    def search_hp(searchterm: str):
+        if not searchterm:
+            return pilihan_unik
+        return [hp for hp in pilihan_unik if searchterm.lower() in hp.lower()]
 
-        harga_ref = float(ref["Harga"])
-        tol = max(float(TOL_RP), 0.15 * harga_ref) if mode == "toko" else 0.3 * harga_ref
-        with st.spinner("Mencari alternatif terbaik..."):
-            hasil = cari_alternatif(ref, df_toko, mode, tol, TOP_N)
+    pilihan_customer = st_searchbox(
+        search_hp,
+        label="🔎 Cari HP yang sedang kosong:",
+        placeholder="Ketik atau pilih nama HP...",
+        key="search_hp",
+        default_options=pilihan_unik,
+    )
 
-        if st.session_state.get("last_logged_product") != pilihan_customer:
-            st.session_state["attempt_id"] = uuid.uuid4().hex[:8]
-            st.session_state["last_logged_product"] = pilihan_customer
-            catat_attempt(
-                st.session_state["attempt_id"], pilihan_customer, mode,
-                [h["row"]["Nama_Lengkap"] for h in hasil],
-            )
-            hitung_total_attempt.clear()
+    TOP_N = 4
+    TOL_RP = 2500000
 
-        if not hasil:
-            st.info("Belum ada alternatif dalam rentang harga ini. Data produk mungkin perlu dilengkapi.")
-        else:
-            target_override = OVERRIDE_TOP.get(pilihan_customer)
-            if target_override:
-                for i, h in enumerate(hasil):
-                    if h["row"]["Nama_Lengkap"] == target_override and i > 0:
-                        hasil.insert(0, hasil.pop(i))
-                        break
+    if pilihan_customer:
+        try:
+            if pilihan_customer in pilihan_toko:
+                mode = "toko"
+                ref = df_toko[df_toko["Nama_Lengkap"] == pilihan_customer].iloc[0]
+            elif pilihan_customer in pilihan_kompetitor:
+                mode = "kompetitor"
+                ref = df_kompetitor[df_kompetitor["Nama_Lengkap"] == pilihan_customer].iloc[0]
+            else:
+                st.error("Produk tidak ditemukan di database.")
+                st.stop()
 
-            ss_key = f"selected_alt_{pilihan_customer}"
-            radio_key = f"radio_{pilihan_customer}"
+            if pd.isna(pd.to_numeric(ref["Harga"], errors="coerce")):
+                st.error("Harga produk ini belum diisi, sehingga alternatif belum bisa dicari.")
+                st.stop()
 
-            if radio_key in st.session_state:
-                label_dipilih = st.session_state[radio_key]
-                for i, h in enumerate(hasil):
-                    if f"📱 {h['row']['Nama_Lengkap']}" == label_dipilih:
-                        st.session_state[ss_key] = i
-                        break
+            harga_ref = float(ref["Harga"])
+            tol = max(float(TOL_RP), 0.15 * harga_ref) if mode == "toko" else 0.3 * harga_ref
+            with st.spinner("Mencari alternatif terbaik..."):
+                hasil = cari_alternatif(ref, df_toko, mode, tol, TOP_N)
 
-            if ss_key not in st.session_state:
-                st.session_state[ss_key] = 0
+            if st.session_state.get("last_logged_product") != pilihan_customer:
+                st.session_state["attempt_id"] = uuid.uuid4().hex[:8]
+                st.session_state["last_logged_product"] = pilihan_customer
+                catat_attempt(
+                    st.session_state["attempt_id"], pilihan_customer, mode,
+                    [h["row"]["Nama_Lengkap"] for h in hasil],
+                )
+                hitung_total_attempt.clear()
+                muat_log_df.clear()
 
-            idx = min(st.session_state.get(ss_key, 0), len(hasil) - 1)
-            if idx < 0:
-                idx = 0
-            st.session_state[ss_key] = idx
-            h_selected = hasil[idx]
+            if not hasil:
+                st.info("Belum ada alternatif dalam rentang harga ini.")
+            else:
+                target_override = OVERRIDE_TOP.get(pilihan_customer)
+                if target_override:
+                    for i, h in enumerate(hasil):
+                        if h["row"]["Nama_Lengkap"] == target_override and i > 0:
+                            hasil.insert(0, hasil.pop(i))
+                            break
 
-            ket = "sedang kosong di Digiplus" if mode == "toko" else "tidak dijual di Digiplus"
-            st.markdown(
-                f'<div class="dp-reco">'
-                f'<div class="dp-rl">🎯 REKOMENDASI SWITCH SELLING</div>'
-                f'<div class="dp-rt">Segera alihkan ke {esc(h_selected["row"]["Nama_Lengkap"])}!</div>'
-                f'<div class="dp-rs">{esc(pilihan_customer)} {ket}.</div>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
+                ss_key = f"selected_alt_{pilihan_customer}"
+                radio_key = f"radio_{pilihan_customer}"
 
-            st.markdown(
-                f'<div class="dp-ref">'
-                f'<div><div class="dp-rk">Harga Acuan</div>'
-                f'<div class="dp-rv">{esc(rp(harga_ref))}</div></div>'
-                f'<div><div class="dp-rk">Tier</div>'
-                f'<div class="dp-rv">{esc(clean(ref.get("Tier")) or "-")}</div></div>'
-                f'<div><div class="dp-rk">Brand</div>'
-                f'<div class="dp-rv">{esc(clean(ref.get("Brand")) or "-")}</div></div>'
-                f'</div>'
-                '<div class="dp-sep"></div>',
-                unsafe_allow_html=True,
-            )
+                if radio_key in st.session_state:
+                    label_dipilih = st.session_state[radio_key]
+                    for i, h in enumerate(hasil):
+                        if f"📱 {h['row']['Nama_Lengkap']}" == label_dipilih:
+                            st.session_state[ss_key] = i
+                            break
 
-            labels = [f"📱 {h['row']['Nama_Lengkap']}" for h in hasil]
-            st.radio(
-                "Pilih alternatif",
-                labels,
-                index=idx,
-                horizontal=True,
-                key=radio_key,
-                label_visibility="collapsed",
-            )
+                if ss_key not in st.session_state:
+                    st.session_state[ss_key] = 0
 
-            render_alternatif(ref, h_selected, mode)
+                idx = min(st.session_state.get(ss_key, 0), len(hasil) - 1)
+                if idx < 0:
+                    idx = 0
+                st.session_state[ss_key] = idx
+                h_selected = hasil[idx]
 
-            render_outcome(st.session_state.get("attempt_id"), pilihan_customer, mode)
-    except Exception as e:
-        print("UI error:", repr(e))
-        st.error("Terjadi kendala saat menampilkan rekomendasi. Coba refresh data atau pilih produk lain.")
-else:
-    st.session_state.pop("last_logged_product", None)
-    st.info("👆 Ketik atau pilih nama HP di kolom pencarian untuk mulai.")
+                ket = "sedang kosong di Digiplus" if mode == "toko" else "tidak dijual di Digiplus"
+                st.markdown(
+                    f'<div class="dp-reco">'
+                    f'<div class="dp-rl">🎯 REKOMENDASI SWITCH SELLING</div>'
+                    f'<div class="dp-rt">Segera alihkan ke {esc(h_selected["row"]["Nama_Lengkap"])}!</div>'
+                    f'<div class="dp-rs">{esc(pilihan_customer)} {ket}.</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
 
-render_pilot()
+                st.markdown(
+                    f'<div class="dp-ref">'
+                    f'<div><div class="dp-rk">Harga Acuan</div>'
+                    f'<div class="dp-rv">{esc(rp(harga_ref))}</div></div>'
+                    f'<div><div class="dp-rk">Tier</div>'
+                    f'<div class="dp-rv">{esc(clean(ref.get("Tier")) or "-")}</div></div>'
+                    f'<div><div class="dp-rk">Brand</div>'
+                    f'<div class="dp-rv">{esc(clean(ref.get("Brand")) or "-")}</div></div>'
+                    f'</div>'
+                    '<div class="dp-sep"></div>',
+                    unsafe_allow_html=True,
+                )
+
+                labels = [f"📱 {h['row']['Nama_Lengkap']}" for h in hasil]
+                st.radio(
+                    "Pilih alternatif",
+                    labels,
+                    index=idx,
+                    horizontal=True,
+                    key=radio_key,
+                    label_visibility="collapsed",
+                )
+
+                render_alternatif(ref, h_selected, mode)
+                render_outcome(st.session_state.get("attempt_id"), pilihan_customer, mode)
+        except Exception as e:
+            print("UI error:", repr(e))
+            st.error("Terjadi kendala. Coba refresh data atau pilih produk lain.")
+    else:
+        st.session_state.pop("last_logged_product", None)
+        st.info("👆 Ketik atau pilih nama HP di kolom pencarian untuk mulai.")
+
+    render_pilot()
+
+
+# ============================================
+# TAB 2: ANALYTICS DASHBOARD
+# ============================================
+with tab_an:
+    render_analytics()
