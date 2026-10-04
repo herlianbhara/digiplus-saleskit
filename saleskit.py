@@ -27,6 +27,29 @@ html, body, .stApp, button, input, textarea, [class*="st-"] {
     font-family: 'Roboto', Arial, sans-serif !important;
 }
 
+/* ============ LOCK HORIZONTAL SCROLL ============ */
+html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw;
+}
+.stApp {
+    overflow-x: hidden !important;
+    max-width: 100vw;
+}
+[data-testid="stAppViewContainer"] {
+    overflow-x: hidden !important;
+}
+[data-testid="stMain"] {
+    overflow-x: hidden !important;
+}
+.block-container {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+section.main {
+    overflow-x: hidden !important;
+}
+
 /* ============ HIDE STREAMLIT CHROME ============ */
 header[data-testid="stHeader"] { display: none !important; }
 [data-testid="stToolbar"] { display: none !important; }
@@ -93,6 +116,8 @@ hr, .dp-sep {
 .dp-script {
     font-style: italic; line-height: 1.7; font-size: 1rem;
     font-weight: 300; color: #E8EEF8;
+    word-break: break-word;
+    overflow-wrap: anywhere;
 }
 
 /* ============ RECOMMENDATION CARD — BLUE ============ */
@@ -106,12 +131,16 @@ hr, .dp-sep {
     transition: all .3s ease;
 }
 .dp-rl { font-size: .74rem; letter-spacing: .2em; font-weight: 600; color: #8ED8FF; }
-.dp-rt { font-size: 1.35rem; font-weight: 700; color: #FFFFFF; margin-top: .15rem; }
+.dp-rt {
+    font-size: 1.35rem; font-weight: 700; color: #FFFFFF; margin-top: .15rem;
+    word-break: break-word; overflow-wrap: anywhere;
+}
 .dp-rs { font-size: .82rem; color: #9AA6B8; margin-top: .2rem; font-weight: 300; }
 
 /* ============ REFERENCE STRIP ============ */
 .dp-ref {
-    display: grid; grid-template-columns: repeat(3, 1fr);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem; padding: .4rem 0 .6rem;
 }
 .dp-rk {
@@ -121,10 +150,14 @@ hr, .dp-sep {
 .dp-rv {
     font-size: 1.9rem; font-weight: 500; color: #FFFFFF;
     text-shadow: 0 0 24px rgba(77,166,255,.30); margin-top: .15rem;
+    word-break: break-word; overflow-wrap: anywhere;
 }
 
 /* ============ ALTERNATIVE HEADER ============ */
-.dp-alt { font-size: 1.6rem; font-weight: 700; margin: 1.1rem 0 .25rem; color: #FFFFFF; }
+.dp-alt {
+    font-size: 1.6rem; font-weight: 700; margin: 1.1rem 0 .25rem; color: #FFFFFF;
+    word-break: break-word; overflow-wrap: anywhere;
+}
 .dp-meta { color: #A9B6CB; font-size: .95rem; margin-bottom: .4rem; font-weight: 300; }
 .dp-meta b { color: #8ED8FF; font-weight: 500; }
 .dp-why {
@@ -182,6 +215,8 @@ div[data-baseweb="select"] > div:focus-within {
     border-bottom: 1px solid rgba(150,200,255,.12);
     margin-bottom: 1.2rem;
     scrollbar-width: thin;
+    max-width: 100% !important;
+    box-sizing: border-box;
 }
 [data-testid="stRadio"] > div[role="radiogroup"]::-webkit-scrollbar { height: 4px; }
 [data-testid="stRadio"] > div[role="radiogroup"]::-webkit-scrollbar-thumb {
@@ -223,6 +258,7 @@ div.stButton > button {
     background: rgba(255,255,255,.05); color: #FFFFFF;
     border: 1px solid rgba(150,200,255,.18);
     transition: all .2s ease; font-weight: 500;
+    word-break: break-word;
 }
 div.stButton > button:hover {
     border-color: #4DA6FF;
@@ -237,8 +273,12 @@ div.stButton > button:hover {
     .dp-head { padding: 1.4rem 0 0.8rem; }
     .dp-title { font-size: 1.5rem; }
     .dp-sub { font-size: .92rem; margin-top: .5rem; }
-    .dp-rv { font-size: 1.15rem; }
-    .dp-ref { gap: .5rem; }
+    .dp-ref {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .5rem;
+    }
+    .dp-rv { font-size: 1rem; word-break: break-word; overflow-wrap: anywhere; }
+    .dp-rt { word-break: break-word; overflow-wrap: anywhere; }
     .dp-alt { font-size: 1.3rem; }
     .dp-reco .dp-rt { font-size: 1.15rem; }
     [data-testid="stRadio"] label { padding: .55rem .85rem !important; }
