@@ -17,6 +17,232 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+
+# ============================================
+# SPLASH SCREEN — cinematic intro (sekali per session)
+# ============================================
+SPLASH_DURATION_MS = 2600
+
+
+def show_splash():
+    if st.session_state.get("_splash_shown"):
+        return
+    st.session_state["_splash_shown"] = True
+    dur = SPLASH_DURATION_MS
+    components.html(f"""
+    <script>
+    (function() {{
+        try {{
+            const doc = window.parent.document;
+
+            const oldStyle = doc.getElementById('dp-splash-style');
+            if (oldStyle) oldStyle.remove();
+            const oldSplash = doc.getElementById('dp-splash');
+            if (oldSplash) oldSplash.remove();
+
+            const style = doc.createElement('style');
+            style.id = 'dp-splash-style';
+            style.textContent = `
+                #dp-splash {{
+                    position: fixed !important;
+                    inset: 0 !important;
+                    z-index: 999999 !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    background:
+                        radial-gradient(900px 420px at 50% 40%, rgba(77,166,255,.15), transparent 65%),
+                        radial-gradient(700px 320px at 50% 60%, rgba(142,216,255,.06), transparent 70%),
+                        linear-gradient(180deg, #050812, #080C16 55%, #0B1220) !important;
+                    color: #F3F6FB !important;
+                    font-family: 'Roboto', Arial, sans-serif !important;
+                    animation: dp-splash-in 0.4s ease-out both !important;
+                    pointer-events: all !important;
+                }}
+                #dp-splash.dp-out {{
+                    animation: dp-splash-out 0.5s ease-in forwards !important;
+                    pointer-events: none !important;
+                }}
+                #dp-splash .dp-sp-inner {{
+                    text-align: center;
+                    max-width: 560px;
+                    padding: 2rem;
+                }}
+                #dp-splash .dp-sp-logo {{
+                    width: 76px; height: 76px;
+                    margin: 0 auto 1.6rem;
+                    border-radius: 20px;
+                    display: flex; align-items: center; justify-content: center;
+                    color: #FFFFFF;
+                    background: linear-gradient(145deg, rgba(77,166,255,.32), rgba(255,255,255,.06));
+                    border: 1px solid rgba(142,216,255,.38);
+                    box-shadow: 0 0 50px rgba(77,166,255,.45), inset 0 1px 0 rgba(255,255,255,.10);
+                    position: relative;
+                    animation: dp-sp-logo 0.75s cubic-bezier(.2,.8,.2,1) 0.1s both;
+                }}
+                #dp-splash .dp-sp-logo::after {{
+                    content: "";
+                    position: absolute;
+                    right: -4px; bottom: -4px;
+                    width: 14px; height: 14px;
+                    border-radius: 50%;
+                    background: #E31E24;
+                    box-shadow: 0 0 14px rgba(227,30,36,.65);
+                }}
+                #dp-splash .dp-sp-logo svg {{
+                    width: 68%; height: 68%;
+                    display: block;
+                    filter: drop-shadow(0 0 8px rgba(142,216,255,.6));
+                }}
+                #dp-splash .dp-sp-eyebrow {{
+                    font-size: .7rem;
+                    letter-spacing: .38em;
+                    color: #8ED8FF;
+                    text-transform: uppercase;
+                    font-weight: 600;
+                    opacity: 0;
+                    animation: dp-sp-up 0.55s ease-out 0.45s both;
+                }}
+                #dp-splash .dp-sp-title {{
+                    font-size: 2.1rem;
+                    font-weight: 800;
+                    color: #FFFFFF;
+                    margin-top: .65rem;
+                    letter-spacing: -.02em;
+                    line-height: 1.2;
+                    opacity: 0;
+                    animation: dp-sp-up 0.55s ease-out 0.65s both;
+                }}
+                #dp-splash .dp-sp-line {{
+                    width: 90px; height: 1px;
+                    margin: 1.5rem auto;
+                    background: linear-gradient(90deg, transparent, #4DA6FF, transparent);
+                    box-shadow: 0 0 14px #4DA6FF;
+                    opacity: 0;
+                    animation: dp-sp-up 0.55s ease-out 0.85s both;
+                }}
+                #dp-splash .dp-sp-tag {{
+                    font-size: .92rem;
+                    font-style: italic;
+                    color: #B4C0D4;
+                    opacity: 0;
+                    animation: dp-sp-up 0.55s ease-out 1.05s both;
+                }}
+                #dp-splash .dp-sp-credit {{
+                    margin-top: .55rem;
+                    font-size: .78rem;
+                    color: #8E9BB0;
+                    letter-spacing: .02em;
+                    opacity: 0;
+                    animation: dp-sp-up 0.55s ease-out 1.25s both;
+                }}
+                #dp-splash .dp-sp-credit b {{
+                    color: #E8EEF8;
+                    font-weight: 600;
+                }}
+                #dp-splash .dp-sp-dots {{
+                    margin-top: 2.2rem;
+                    display: flex;
+                    gap: .4rem;
+                    justify-content: center;
+                    opacity: 0;
+                    animation: dp-sp-up 0.55s ease-out 1.45s both;
+                }}
+                #dp-splash .dp-sp-dot {{
+                    width: 6px; height: 6px;
+                    border-radius: 50%;
+                    background: rgba(142,216,255,.35);
+                    animation: dp-sp-pulse 1.2s ease-in-out infinite;
+                }}
+                #dp-splash .dp-sp-dot:nth-child(2) {{ animation-delay: .15s; }}
+                #dp-splash .dp-sp-dot:nth-child(3) {{ animation-delay: .3s; }}
+                @keyframes dp-splash-in {{
+                    from {{ opacity: 0; }}
+                    to {{ opacity: 1; }}
+                }}
+                @keyframes dp-splash-out {{
+                    from {{ opacity: 1; }}
+                    to {{ opacity: 0; }}
+                }}
+                @keyframes dp-sp-logo {{
+                    from {{ opacity: 0; transform: scale(0.65); }}
+                    to {{ opacity: 1; transform: scale(1); }}
+                }}
+                @keyframes dp-sp-up {{
+                    from {{ opacity: 0; transform: translateY(10px); }}
+                    to {{ opacity: 1; transform: translateY(0); }}
+                }}
+                @keyframes dp-sp-pulse {{
+                    0%, 100% {{ opacity: .35; transform: scale(1); }}
+                    50% {{ opacity: 1; transform: scale(1.3); background: #8ED8FF; }}
+                }}
+            `;
+            doc.head.appendChild(style);
+
+            const splash = doc.createElement('div');
+            splash.id = 'dp-splash';
+            splash.innerHTML = `
+                <div class="dp-sp-inner">
+                    <div class="dp-sp-logo">
+                        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="dpScreen" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#8FE9FF"/>
+                                    <stop offset="100%" stop-color="#4DA6FF"/>
+                                </linearGradient>
+                                <linearGradient id="dpBody" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#FFFFFF"/>
+                                    <stop offset="100%" stop-color="#B4DDFF"/>
+                                </linearGradient>
+                            </defs>
+
+                            <rect x="24" y="6" width="52" height="88" rx="10" ry="10"
+                                  fill="url(#dpBody)"/>
+
+                            <rect x="28" y="16" width="44" height="66" rx="6" ry="6"
+                                  fill="#0A1424"/>
+
+                            <rect x="32" y="20" width="36" height="58" rx="4" ry="4"
+                                  fill="url(#dpScreen)" opacity="0.85"/>
+
+                            <line x1="44" y1="11" x2="56" y2="11"
+                                  stroke="#0A1424" stroke-width="2" stroke-linecap="round"/>
+
+                            <circle cx="50" cy="88" r="3.5"
+                                    fill="#0A1424" stroke="rgba(142,216,255,.6)" stroke-width="0.8"/>
+                        </svg>
+                    </div>
+                    <div class="dp-sp-eyebrow">DIGIPLUS · MAPTECH</div>
+                    <div class="dp-sp-title">Smart Sales Assistant</div>
+                    <div class="dp-sp-line"></div>
+                    <div class="dp-sp-tag">From "We don't have it" → "Here's what we have."</div>
+                    <div class="dp-sp-credit">created by <b>Herlian Bhara</b></div>
+                    <div class="dp-sp-dots">
+                        <div class="dp-sp-dot"></div>
+                        <div class="dp-sp-dot"></div>
+                        <div class="dp-sp-dot"></div>
+                    </div>
+                </div>
+            `;
+            doc.body.appendChild(splash);
+
+            setTimeout(() => {{
+                splash.classList.add('dp-out');
+                setTimeout(() => {{
+                    try {{ splash.remove(); }} catch (e) {{}}
+                }}, 550);
+            }}, {dur});
+        }} catch (err) {{
+            console.warn('Splash error:', err);
+        }}
+    }})();
+    </script>
+    """, height=0, scrolling=False)
+
+
+show_splash()
+
+
 # ============================================
 # CSS — Glacier / Frosted Glass / Ice Blue
 # ============================================
@@ -28,7 +254,7 @@ html, body, .stApp, button, input, textarea, [class*="st-"] {
     font-family: 'Roboto', Arial, sans-serif !important;
 }
 
-/* ============ LOCK HORIZONTAL SCROLL (pakai clip, bukan hidden) ============ */
+/* ============ LOCK HORIZONTAL SCROLL ============ */
 html, body {
     overflow-x: hidden;
     overflow-x: clip !important;
@@ -216,7 +442,7 @@ div[data-baseweb="select"] > div:focus-within {
     box-shadow: 0 0 0 1px rgba(143,233,255,.5), 0 0 24px rgba(77,166,255,.28) !important;
 }
 
-/* ============ HIDE RADIO BULATAN — AGRESIF ============ */
+/* ============ HIDE RADIO BULATAN ============ */
 [data-testid="stRadio"] label > div:first-child,
 [data-testid="stRadio"] label > div[role="presentation"],
 [data-testid="stRadio"] [data-baseweb="radio"] > div:first-child,
@@ -326,7 +552,7 @@ div.stButton > button:hover {
 
 
 # ============================================
-# JS SAFETY NET — reset scroll di semua container
+# JS SAFETY NET — reset scroll
 # ============================================
 components.html("""
 <script>
@@ -369,7 +595,7 @@ components.html("""
 
 
 # ============================================
-# 0. OVERRIDE KHUSUS (untuk presentasi / pilot)
+# 0. OVERRIDE KHUSUS
 # ============================================
 OVERRIDE_TOP = {
     "Poco X8 5G": "Xiaomi Redmi Note 17 Pro 5G",
