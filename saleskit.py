@@ -187,42 +187,6 @@ hr, .dp-sep {
 /* KEYFRAMES */
 @keyframes dpFadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes dpFadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes dpLoadingPulse { 0%, 100% { opacity: .35; transform: scale(1); } 50% { opacity: 1; transform: scale(1.35); } }
-
-/* CUSTOM SPINNER */
-[data-testid="stSpinner"] {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: .6rem !important;
-    padding: 1.4rem 1rem !important;
-    animation: dpFadeIn 0.3s ease-out both;
-}
-[data-testid="stSpinner"] > div {
-    border-color: rgba(142,216,255,.15) !important;
-    border-top-color: #8FE9FF !important;
-    border-right-color: #4DA6FF !important;
-    width: 32px !important;
-    height: 32px !important;
-    border-width: 2px !important;
-    box-shadow: 0 0 24px rgba(77,166,255,.35);
-}
-[data-testid="stSpinner"] p,
-[data-testid="stSpinner"] span,
-[data-testid="stSpinner"] div[data-testid="stMarkdownContainer"] p {
-    color: #B4C0D4 !important;
-    font-size: .95rem !important;
-    font-weight: 400 !important;
-    letter-spacing: .02em !important;
-    margin: 0 !important;
-    text-align: center !important;
-    white-space: normal !important;
-}
-[data-testid="stSpinner"] div[data-testid="stMarkdownContainer"] {
-    width: 100% !important;
-    text-align: center !important;
-}
 
 /* HEADER */
 .dp-head { text-align: center; padding: 2.2rem 0 1rem; animation: dpFadeUp 0.55s ease-out both; }
@@ -1287,15 +1251,14 @@ def load_data():
     return df_toko, df_komp, "Excel (data_hp.xlsx)", catatan
 
 
-with st.spinner("Menyiapkan data produk..."):
-    try:
-        df_toko, df_kompetitor, sumber_data, catatan_data = load_data()
-    except FileNotFoundError:
-        st.error("⚠️ Data produk tidak ditemukan.")
-        st.stop()
-    except Exception as e:
-        st.error(f"⚠️ Error baca data: {e}")
-        st.stop()
+try:
+    df_toko, df_kompetitor, sumber_data, catatan_data = load_data()
+except FileNotFoundError:
+    st.error("⚠️ Data produk tidak ditemukan.")
+    st.stop()
+except Exception as e:
+    st.error(f"⚠️ Error baca data: {e}")
+    st.stop()
 
 df_toko["Nama_Lengkap"] = df_toko.apply(gabung_nama, axis=1)
 if not df_kompetitor.empty:
@@ -1656,8 +1619,7 @@ with st.sidebar:
     if get_log_sheet()[0] is None:
         st.caption("Google Sheets belum terhubung. Log disimpan sementara di file lokal.")
     if st.button("Refresh data"):
-        with st.spinner("Menyegarkan data..."):
-            st.cache_data.clear()
+        st.cache_data.clear()
         st.rerun()
 
 
@@ -1713,8 +1675,7 @@ with tab_sa:
 
             harga_ref = float(ref["Harga"])
             tol = max(float(TOL_RP), 0.15 * harga_ref) if mode == "toko" else 0.3 * harga_ref
-            with st.spinner("Mencari alternatif terbaik..."):
-                hasil = cari_alternatif(ref, df_toko, mode, tol, TOP_N)
+            hasil = cari_alternatif(ref, df_toko, mode, tol, TOP_N)
 
             if st.session_state.get("last_logged_product") != pilihan_customer:
                 st.session_state["attempt_id"] = uuid.uuid4().hex[:8]
