@@ -965,7 +965,7 @@ def buat_pdf_report(df_log, filter_store=None):
     periode = None
     if "Timestamp" in attempts.columns and total_attempts > 0:
         ts = pd.to_datetime(attempts["Timestamp"], errors="coerce").dropna()
-        ts = ts[ts.dt.year >= 2020]  # filter epoch 1970 / invalid
+        ts = ts[ts.dt.year >= 2020]
         if not ts.empty:
             awal = ts.min().strftime("%d %b %Y")
             akhir = ts.max().strftime("%d %b %Y")
@@ -1179,11 +1179,9 @@ def buat_pdf_report(df_log, filter_store=None):
     # ===== Footer: pastikan kedua baris di halaman yang sama =====
     waktu_export = datetime.now(WIB).strftime("%d %b %Y, %H:%M WIB")
 
-    # Kalau sisa ruang di halaman sekarang < 25mm, tambah halaman dulu
     if pdf.get_y() > 260:
         pdf.add_page()
 
-    # Matikan auto page break sementara biar kedua baris tidak terpisah
     pdf.set_auto_page_break(auto=False)
     pdf.set_y(-22)
     pdf.set_font("Helvetica", "I", 8)
@@ -1283,7 +1281,6 @@ pilihan_toko = df_toko["Nama_Lengkap"].unique().tolist()
 pilihan_kompetitor = (
     df_kompetitor["Nama_Lengkap"].unique().tolist() if not df_kompetitor.empty else []
 )
-# Urut alphabet A-Z (case-insensitive)
 pilihan_unik = sorted(set(pilihan_toko + pilihan_kompetitor), key=lambda x: x.lower())
 
 
@@ -1597,11 +1594,13 @@ def render_analytics():
         else:
             st.caption("Belum ada data produk dicari.")
 
+    # PDF Export section
     st.markdown(
         '<div class="dp-pdf-block">'
         '<div class="dp-pdf-title">📄 Export PDF Report</div>'
-        '<div class="dp-pdf-sub">Download ringkasan pilot sebagai PDF 1 halaman — '
-        'siap dikirim ke stakeholder atau dilampirkan di laporan presentasi.</div>'
+        '<div class="dp-pdf-sub">Laporan ringkasan pilot dalam format PDF satu halaman. '
+        'Dokumen ini memuat metrik utama, distribusi outcome, '
+        'dan daftar produk terpopuler untuk keperluan dokumentasi dan pelaporan.</div>'
         '</div>',
         unsafe_allow_html=True,
     )
