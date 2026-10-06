@@ -477,7 +477,7 @@ div[data-testid="stDownloadButton"] > button:hover {
 
 
 # ============================================
-# JS SAFETY NET (versi lebih lembut — fix bar search nutup sendiri)
+# JS SAFETY NET
 # ============================================
 components.html("""
 <script>
@@ -961,13 +961,22 @@ def buat_pdf_report(df_log, filter_store=None):
         if len(t) > 0:
             top_produk = str(t.index[0])
 
-    periode = "—"
+    # ===== Periode: filter timestamp valid (tahun >= 2020) =====
+    periode = None
     if "Timestamp" in attempts.columns and total_attempts > 0:
         ts = pd.to_datetime(attempts["Timestamp"], errors="coerce").dropna()
+        ts = ts[ts.dt.year >= 2020]  # filter epoch 1970 / invalid
         if not ts.empty:
             awal = ts.min().strftime("%d %b %Y")
             akhir = ts.max().strftime("%d %b %Y")
             periode = f"{awal} - {akhir}" if awal != akhir else awal
+
+    # Fallback: bulan sekarang (realtime) kalau tidak ada timestamp valid
+    if not periode:
+        bulan_id = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                    "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+        now = datetime.now(WIB)
+        periode = f"{bulan_id[now.month - 1]} {now.year}"
 
     pdf = FPDF(orientation="P", unit="mm", format="A4")
     pdf.set_auto_page_break(auto=True, margin=15)
@@ -991,6 +1000,7 @@ def buat_pdf_report(df_log, filter_store=None):
     pdf.set_x(15)
     pdf.cell(0, 6, "Switch-Selling Pilot Report", ln=1)
 
+    # Periode kanan atas
     pdf.set_text_color(142, 216, 255)
     pdf.set_font("Helvetica", "B", 7)
     pdf.set_xy(140, 14)
@@ -1000,8 +1010,9 @@ def buat_pdf_report(df_log, filter_store=None):
     pdf.set_xy(140, 18)
     pdf.cell(55, 5, periode, align="R", ln=1)
 
-    store_label = "Semua Store"
-    if filter_store and filter_store != "Semua Store":
+    # Store kanan bawah header
+    store_label = "Digiplus Seluruh Indonesia"
+    if filter_store and filter_store not in ("Semua Store", "Digiplus Seluruh Indonesia"):
         store_label = filter_store
     pdf.set_text_color(142, 216, 255)
     pdf.set_font("Helvetica", "B", 7)
@@ -1010,8 +1021,8 @@ def buat_pdf_report(df_log, filter_store=None):
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "", 9)
     pdf.set_xy(140, 31)
-    if len(store_label) > 28:
-        store_label = store_label[:26] + "..."
+    if len(store_label) > 30:
+        store_label = store_label[:28] + "..."
     pdf.cell(55, 5, store_label, align="R", ln=1)
 
     pdf.set_xy(15, 60)
@@ -1165,15 +1176,24 @@ def buat_pdf_report(df_log, filter_store=None):
             pdf.set_xy(160, row_y + 1.5)
             pdf.cell(30, 4, str(count), align="R", ln=0)
 
-    pdf.set_y(-22)
-    pdf.set_text_color(140, 150, 165)
-    pdf.set_font("Helvetica", "I", 8)
+    # ===== Footer: pastikan kedua baris di halaman yang sama =====
     waktu_export = datetime.now(WIB).strftime("%d %b %Y, %H:%M WIB")
+
+    # Kalau sisa ruang di halaman sekarang < 25mm, tambah halaman dulu
+    if pdf.get_y() > 260:
+        pdf.add_page()
+
+    # Matikan auto page break sementara biar kedua baris tidak terpisah
+    pdf.set_auto_page_break(auto=False)
+    pdf.set_y(-22)
+    pdf.set_font("Helvetica", "I", 8)
+    pdf.set_text_color(140, 150, 165)
     pdf.cell(0, 5, f"Report dibuat otomatis oleh Digiplus Smart Sales Assistant  -  {waktu_export}",
              align="C", ln=1)
     pdf.set_font("Helvetica", "B", 8)
     pdf.set_text_color(10, 20, 36)
     pdf.cell(0, 5, "created by Herlian Bhara", align="C", ln=1)
+    pdf.set_auto_page_break(auto=True)
 
     return bytes(pdf.output()), None
 
