@@ -417,6 +417,27 @@ div[data-testid="stDownloadButton"] > button:hover {
     animation: dpFadeUp 0.5s ease-out both;
 }
 
+/* CUSTOM LEGEND (untuk donut chart) */
+.dp-legend {
+    display: flex; flex-wrap: wrap; gap: .35rem .9rem;
+    justify-content: center;
+    margin-top: .6rem;
+    animation: dpFadeUp 0.5s ease-out 0.1s both;
+}
+.dp-legend-item {
+    display: flex; align-items: center; gap: .4rem;
+    font-size: .82rem; color: #C4CFDD;
+    font-weight: 400;
+}
+.dp-legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.dp-legend-count {
+    color: #8ED8FF; font-weight: 600; margin-left: .15rem;
+}
+
 /* PDF EXPORT SECTION */
 .dp-pdf-block {
     margin-top: 2rem;
@@ -467,6 +488,8 @@ div[data-testid="stDownloadButton"] > button:hover {
     .dp-kpi-value[style] { font-size: .95rem !important; }
     .stTabs [data-baseweb="tab"] { padding: .65rem 1rem !important; font-size: .9rem; }
     .dp-pdf-block { padding: 1.1rem 1rem 1rem; }
+    .dp-legend { gap: .3rem .7rem; }
+    .dp-legend-item { font-size: .78rem; }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -939,7 +962,6 @@ def muat_log_df():
 # PDF REPORT GENERATOR
 # ============================================
 def buat_pdf_report(df_log, filter_store=None):
-    """Bikin PDF report 1 halaman dari df_log. Return (pdf_bytes, error)."""
     try:
         from fpdf import FPDF
     except ImportError:
@@ -975,7 +997,6 @@ def buat_pdf_report(df_log, filter_store=None):
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
-    # ---- Header block ----
     pdf.set_fill_color(10, 20, 36)
     pdf.rect(0, 0, 210, 50, "F")
 
@@ -994,7 +1015,6 @@ def buat_pdf_report(df_log, filter_store=None):
     pdf.set_x(15)
     pdf.cell(0, 6, "Switch-Selling Pilot Report", ln=1)
 
-    # Periode & store di kanan
     pdf.set_text_color(142, 216, 255)
     pdf.set_font("Helvetica", "B", 7)
     pdf.set_xy(140, 14)
@@ -1018,7 +1038,6 @@ def buat_pdf_report(df_log, filter_store=None):
         store_label = store_label[:26] + "..."
     pdf.cell(55, 5, store_label, align="R", ln=1)
 
-    # ---- Section: Ringkasan Eksekutif ----
     pdf.set_xy(15, 60)
     pdf.set_text_color(142, 216, 255)
     pdf.set_font("Helvetica", "B", 8)
@@ -1065,7 +1084,6 @@ def buat_pdf_report(df_log, filter_store=None):
         pdf.set_xy(x + 4, y + 20)
         pdf.cell(0, 4, sub[:42], ln=1)
 
-    # ---- Section: Top 5 Alternatif ----
     y_now = start_y + 2 * (box_h + gap) + 6
     pdf.set_xy(15, y_now)
     pdf.set_text_color(142, 216, 255)
@@ -1104,7 +1122,6 @@ def buat_pdf_report(df_log, filter_store=None):
         pdf.cell(0, 5, "Belum ada data alternatif.", ln=1)
         y_now += 14
 
-    # ---- Section: Distribusi Outcome ----
     if y_now > 235:
         pdf.add_page()
         y_now = 20
@@ -1140,7 +1157,6 @@ def buat_pdf_report(df_log, filter_store=None):
         pdf.cell(0, 5, "Belum ada outcome.", ln=1)
         y_now += 14
 
-    # ---- Section: Top 10 Produk ----
     if y_now > 225:
         pdf.add_page()
         y_now = 20
@@ -1173,7 +1189,6 @@ def buat_pdf_report(df_log, filter_store=None):
             pdf.set_xy(160, row_y + 1.5)
             pdf.cell(30, 4, str(count), align="R", ln=0)
 
-    # ---- Footer ----
     pdf.set_y(-22)
     pdf.set_text_color(140, 150, 165)
     pdf.set_font("Helvetica", "I", 8)
@@ -1433,7 +1448,6 @@ def render_analytics():
         top_produk = "—"
         produk_unik = 0
 
-    # KPI cards
     st.markdown(
         f'<div class="dp-kpi-row">'
         f'<div class="dp-kpi">'
@@ -1472,15 +1486,16 @@ def render_analytics():
             if not daily.empty:
                 chart = alt.Chart(daily).mark_line(
                     color="#4DA6FF", strokeWidth=2.5,
-                    point=alt.OverlayMarkDef(color="#8FE9FF", size=70, filled=True, strokeWidth=0),
+                    point=alt.OverlayMarkDef(color="#8FE9FF", size=60, filled=True, strokeWidth=0),
                 ).encode(
                     x=alt.X("Tanggal:T", title=None, axis=alt.Axis(
                         format="%d %b", labelColor="#A9B6CB", grid=False,
-                        domain=False, tickColor="rgba(255,255,255,0.1)")),
+                        domain=False, tickColor="rgba(255,255,255,0.1)",
+                        labelFontSize=10)),
                     y=alt.Y("Jumlah:Q", title=None, axis=alt.Axis(
                         labelColor="#A9B6CB", grid=False, domain=False,
-                        tickColor="rgba(255,255,255,0.1)")),
-                ).properties(height=220)
+                        tickColor="rgba(255,255,255,0.1)", labelFontSize=10)),
+                ).properties(height=240)
                 st.altair_chart(_style_chart(chart), use_container_width=True)
             else:
                 st.caption("Belum ada data timestamp.")
@@ -1502,11 +1517,13 @@ def render_analytics():
             ).encode(
                 y=alt.Y("Alternatif:N", sort="-x", title=None, axis=alt.Axis(
                     labelColor="#E8EEF8", grid=False, domain=False,
-                    tickColor="rgba(255,255,255,0.1)", labelLimit=220)),
+                    tickColor="rgba(255,255,255,0.1)",
+                    labelFontSize=10, labelLimit=140)),
                 x=alt.X("Jumlah:Q", title=None, axis=alt.Axis(
                     labelColor="#A9B6CB", grid=False, domain=False,
-                    tickColor="rgba(255,255,255,0.1)")),
-            ).properties(height=220)
+                    tickColor="rgba(255,255,255,0.1)", labelFontSize=10,
+                    tickMinStep=1)),
+            ).properties(height=240)
             st.altair_chart(_style_chart(chart), use_container_width=True)
         else:
             st.caption("Belum ada data alternatif.")
@@ -1519,22 +1536,46 @@ def render_analytics():
             oc = outcomes["Hasil"].astype(str).value_counts().reset_index()
             oc.columns = ["Hasil", "Jumlah"]
             if not oc.empty:
-                color_scale = alt.Scale(
-                    domain=["Berhasil menjual", "Switch berhasil",
-                            "Tertarik namun masih ragu", "Tertarik lihat alternatif",
-                            "Belum berhasil", "Tidak jadi"],
-                    range=["#4ADE80", "#4ADE80", "#F5B84B", "#4ADE80", "#E31E24", "#E31E24"],
-                )
+                color_map = {
+                    "Berhasil menjual": "#4ADE80",
+                    "Switch berhasil": "#22C55E",
+                    "Tertarik namun masih ragu": "#F5B84B",
+                    "Tertarik lihat alternatif": "#8FE9FF",
+                    "Belum berhasil": "#E31E24",
+                    "Tidak jadi": "#B91C1C",
+                }
+                # Donut TANPA legend bawaan (legend custom di bawah)
                 chart = alt.Chart(oc).mark_arc(
-                    innerRadius=60, outerRadius=110,
+                    innerRadius=55, outerRadius=95,
                     stroke="#0A1424", strokeWidth=2,
                 ).encode(
                     theta=alt.Theta("Jumlah:Q"),
-                    color=alt.Color("Hasil:N", scale=color_scale, legend=alt.Legend(
-                        labelColor="#A9B6CB", title=None, orient="bottom", columns=1)),
+                    color=alt.Color("Hasil:N",
+                        scale=alt.Scale(
+                            domain=list(color_map.keys()),
+                            range=list(color_map.values()),
+                        ),
+                        legend=None),
                     tooltip=["Hasil", "Jumlah"],
-                ).properties(height=280)
+                ).properties(height=240)
                 st.altair_chart(_style_chart(chart), use_container_width=True)
+
+                # Legend custom pakai HTML
+                legend_html = '<div class="dp-legend">'
+                for _, row in oc.iterrows():
+                    name = str(row["Hasil"])
+                    count = int(row["Jumlah"])
+                    color = color_map.get(name, "#8ED8FF")
+                    legend_html += (
+                        f'<div class="dp-legend-item">'
+                        f'<span class="dp-legend-dot" style="background:{color}; '
+                        f'box-shadow: 0 0 8px {color}80;"></span>'
+                        f'<span>{esc(name)}</span>'
+                        f'<span class="dp-legend-count">{count}</span>'
+                        f'</div>'
+                    )
+                legend_html += '</div>'
+                st.markdown(legend_html, unsafe_allow_html=True)
             else:
                 st.caption("Belum ada outcome yang tercatat.")
         else:
@@ -1551,10 +1592,12 @@ def render_analytics():
                 ).encode(
                     y=alt.Y("Produk:N", sort="-x", title=None, axis=alt.Axis(
                         labelColor="#E8EEF8", grid=False, domain=False,
-                        tickColor="rgba(255,255,255,0.1)", labelLimit=220)),
+                        tickColor="rgba(255,255,255,0.1)",
+                        labelFontSize=10, labelLimit=140)),
                     x=alt.X("Jumlah:Q", title=None, axis=alt.Axis(
                         labelColor="#A9B6CB", grid=False, domain=False,
-                        tickColor="rgba(255,255,255,0.1)")),
+                        tickColor="rgba(255,255,255,0.1)", labelFontSize=10,
+                        tickMinStep=1)),
                 ).properties(height=280)
                 st.altair_chart(_style_chart(chart), use_container_width=True)
         else:
