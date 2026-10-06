@@ -477,7 +477,7 @@ div[data-testid="stDownloadButton"] > button:hover {
 
 
 # ============================================
-# JS SAFETY NET
+# JS SAFETY NET (versi lebih lembut — fix bar search nutup sendiri)
 # ============================================
 components.html("""
 <script>
@@ -503,11 +503,6 @@ components.html("""
             setTimeout(resetScroll, 400);
         }
     }, true);
-    doc.addEventListener('scroll', (e) => {
-        if (e.target === doc.documentElement || e.target === doc.body) resetScroll();
-    }, true);
-    const observer = new MutationObserver(() => resetScroll());
-    observer.observe(doc.body, { childList: true, subtree: false });
 })();
 </script>
 """, height=0)
@@ -903,7 +898,7 @@ def catat_outcome(attempt_id, produk, mode, hasil):
     return tulis_log(row)
 
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=300)
 def hitung_total_attempt():
     ws, _ = get_log_sheet()
     try:
@@ -916,7 +911,7 @@ def hitung_total_attempt():
     return 0
 
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=300)
 def muat_log_df():
     ws, _ = get_log_sheet()
     if ws is not None:
@@ -1233,7 +1228,7 @@ def get_data_book():
         return None, str(e)
 
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=300)
 def load_data():
     catatan = None
     book, err = get_data_book()
@@ -1268,7 +1263,8 @@ pilihan_toko = df_toko["Nama_Lengkap"].unique().tolist()
 pilihan_kompetitor = (
     df_kompetitor["Nama_Lengkap"].unique().tolist() if not df_kompetitor.empty else []
 )
-pilihan_unik = sorted(pilihan_toko + pilihan_kompetitor)
+# Urut alphabet A-Z (case-insensitive)
+pilihan_unik = sorted(set(pilihan_toko + pilihan_kompetitor), key=lambda x: x.lower())
 
 
 # ============================================
@@ -1642,16 +1638,26 @@ with tab_sa:
     )
 
     def search_hp(searchterm: str):
-        if not searchterm:
-            return pilihan_unik
-        return [hp for hp in pilihan_unik if searchterm.lower() in hp.lower()]
+        """Multi-term AND search. Ketik 'samsung s25' → match 'Samsung Galaxy S25'.
+        Hasil urut alphabet A-Z. Limit 80 untuk performa di mobile."""
+        try:
+            s = (searchterm or "").strip().lower()
+            if not s:
+                return pilihan_unik[:80]
+            terms = [t for t in s.split() if t]
+            if not terms:
+                return pilihan_unik[:80]
+            hasil = [hp for hp in pilihan_unik if all(t in hp.lower() for t in terms)]
+            return hasil[:80]
+        except Exception:
+            return pilihan_unik[:80]
 
     pilihan_customer = st_searchbox(
         search_hp,
         label="🔎 Cari HP yang sedang kosong:",
         placeholder="Ketik atau pilih nama HP...",
         key="search_hp",
-        default_options=pilihan_unik,
+        default_options=pilihan_unik[:80],
     )
 
     TOP_N = 4
