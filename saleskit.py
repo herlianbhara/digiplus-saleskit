@@ -214,6 +214,37 @@ hr, .dp-sep {
 .dp-pt { display: flex; gap: .6rem; margin: .1rem 0 .95rem; line-height: 1.55; font-size: 1rem; font-weight: 400; color: #E8EEF8; }
 .dp-script { font-style: italic; line-height: 1.7; font-size: 1rem; font-weight: 300; color: #E8EEF8; word-break: break-word; overflow-wrap: anywhere; }
 
+/* VARIAN TOGGLE (pills) */
+.dp-varian-hint {
+    font-size: .75rem;
+    color: #8E9BB0;
+    margin-bottom: .45rem;
+    letter-spacing: .02em;
+}
+[data-testid="stPills"] { margin-bottom: .7rem !important; }
+[data-testid="stPills"] button {
+    background: rgba(255,255,255,.05) !important;
+    color: #8E9BB0 !important;
+    border: 1px solid rgba(142,216,255,.15) !important;
+    border-radius: 999px !important;
+    padding: .35rem .85rem !important;
+    font-size: .8rem !important;
+    font-weight: 500 !important;
+    transition: all .2s ease !important;
+}
+[data-testid="stPills"] button:hover {
+    color: #FFFFFF !important;
+    border-color: rgba(143,233,255,.4) !important;
+    background: rgba(77,166,255,.1) !important;
+}
+[data-testid="stPills"] button[aria-checked="true"],
+[data-testid="stPills"] button[data-selected="true"] {
+    background: linear-gradient(135deg, rgba(77,166,255,.2), rgba(143,233,255,.1)) !important;
+    color: #FFFFFF !important;
+    border-color: #8FE9FF !important;
+    box-shadow: 0 0 12px rgba(77,166,255,.3) !important;
+}
+
 /* RECOMMENDATION CARD */
 .dp-reco {
     display: block; padding: 1rem 1.25rem; border-radius: 14px;
@@ -398,6 +429,38 @@ div[data-testid="stDownloadButton"] > button:hover {
     animation: dpFadeUp 0.5s ease-out both;
 }
 
+/* A/B TESTING CARDS */
+.dp-ab-grid {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem; margin: .6rem 0 1rem;
+}
+.dp-ab-card {
+    padding: 1.15rem 1.25rem;
+    background: rgba(255,255,255,.035);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(142,216,255,.12);
+    border-radius: 14px;
+    animation: dpFadeUp 0.55s ease-out both;
+    transition: border-color .3s ease, box-shadow .3s ease;
+}
+.dp-ab-card.a { border-color: rgba(143,233,255,.30); }
+.dp-ab-card.b { border-color: rgba(74,222,128,.30); }
+.dp-ab-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,.35); }
+.dp-ab-label {
+    font-size: .66rem; letter-spacing: .22em; text-transform: uppercase;
+    font-weight: 700;
+}
+.dp-ab-label.a { color: #8FE9FF; }
+.dp-ab-label.b { color: #4ADE80; }
+.dp-ab-name { font-size: .95rem; font-weight: 600; color: #FFFFFF; margin-top: .25rem; }
+.dp-ab-rate {
+    font-size: 2rem; font-weight: 700; margin-top: .65rem; line-height: 1;
+    letter-spacing: -.02em;
+}
+.dp-ab-card.a .dp-ab-rate { color: #8FE9FF; text-shadow: 0 0 22px rgba(143,233,255,.35); }
+.dp-ab-card.b .dp-ab-rate { color: #4ADE80; text-shadow: 0 0 22px rgba(74,222,128,.35); }
+.dp-ab-detail { font-size: .78rem; color: #8E9BB0; margin-top: .45rem; font-weight: 300; line-height: 1.5; }
+
 /* CUSTOM LEGEND */
 .dp-legend {
     display: flex; flex-wrap: wrap; gap: .35rem .9rem;
@@ -471,6 +534,8 @@ div[data-testid="stDownloadButton"] > button:hover {
     .dp-pdf-block { padding: 1.1rem 1rem 1rem; }
     .dp-legend { gap: .3rem .7rem; }
     .dp-legend-item { font-size: .78rem; }
+    .dp-ab-grid { grid-template-columns: 1fr; gap: .7rem; }
+    .dp-ab-rate { font-size: 1.6rem; }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -763,7 +828,15 @@ def kecil(t):
     return t if len(t) < 2 or t[1].isupper() else t[0].lower() + t[1:]
 
 
-def buat_script(ref_nama, alt_row, mode, selisih, h=None):
+# ============================================
+# SCRIPT VARIAN (A/B TESTING)
+# ============================================
+def buat_script_varian(ref_nama, alt_row, mode, selisih, h=None):
+    """Return (varian_a, varian_b) — 2 pendekatan script untuk A/B test.
+    
+    Varian A · Spesifikasi: fokus chipset, tier, spec match (pendekatan teknis).
+    Varian B · Manfaat: fokus use case, aktivitas user, prob personal.
+    """
     kondisi = ("memang sedang kosong di Digiplus" if mode == "toko"
                else "memang belum kami jual di Digiplus")
     alt_nama = alt_row["Nama_Lengkap"]
@@ -773,20 +846,24 @@ def buat_script(ref_nama, alt_row, mode, selisih, h=None):
     poin = [clean(alt_row.get(f"Kelebihan_{i}")) for i in (1, 2, 3)]
     poin = [p for p in poin if p]
 
-    kal = [f"Kak, {ref_nama} {kondisi}."]
+    # ============================================
+    # VARIAN A — SPESIFIKASI
+    # ============================================
+    kal_a = [f"Kak, {ref_nama} {kondisi}."]
     if target:
         target_ringkas = target.split(",")[0].strip().lower()
-        kal.append(f"Kalau Kakak sedang cari HP untuk {target_ringkas}, saya punya satu alternatif menarik untuk dipertimbangkan.")
+        kal_a.append(f"Kalau Kakak sedang cari HP untuk {target_ringkas}, "
+                     "saya punya satu alternatif menarik untuk dipertimbangkan.")
     else:
-        kal.append("Tapi saya punya satu alternatif menarik untuk dipertimbangkan.")
+        kal_a.append("Tapi saya punya satu alternatif menarik untuk dipertimbangkan.")
 
     rekom = f"Produknya {alt_nama}"
     if tier:
         rekom += f", di kelas {tier}"
-    kal.append(rekom + ".")
+    kal_a.append(rekom + ".")
 
     if poin:
-        kal.append(f"Yang menonjol, {gabung_teks([kecil(ringkas(p)) for p in poin])}.")
+        kal_a.append(f"Yang menonjol, {gabung_teks([kecil(ringkas(p)) for p in poin])}.")
 
     spec_match = []
     chip_match = False
@@ -801,21 +878,74 @@ def buat_script(ref_nama, alt_row, mode, selisih, h=None):
                 spec_match.append(kecil(teks))
 
     if chip_match and spec_match:
-        kal.append(f"Kebetulan spesifikasi intinya juga sejalan — {gabung_teks(spec_match[:2])}. Jadi dari sisi kebutuhan, tidak jauh berbeda dengan yang Kakak cari.")
+        kal_a.append(f"Kebetulan spesifikasi intinya juga sejalan — {gabung_teks(spec_match[:2])}. "
+                     "Jadi dari sisi kebutuhan, tidak jauh berbeda dengan yang Kakak cari.")
     elif spec_match:
-        kal.append(f"Menariknya, {gabung_teks(spec_match[:2])} — jadi secara kelas produk, sepadan dengan yang Kakak cari.")
+        kal_a.append(f"Menariknya, {gabung_teks(spec_match[:2])} — "
+                     "jadi secara kelas produk, sepadan dengan yang Kakak cari.")
     elif chip:
-        kal.append(f"Dari sisi prosesor, produk ini pakai {chip}.")
+        kal_a.append(f"Dari sisi prosesor, produk ini pakai {chip}.")
 
     if selisih < -500000:
-        kal.append(f"Bahkan harganya lebih hemat {rp(abs(selisih))} dibanding {ref_nama}, jadi Kakak dapat spesifikasi yang sepadan dengan harga lebih ringan.")
+        kal_a.append(f"Bahkan harganya lebih hemat {rp(abs(selisih))} dibanding {ref_nama}, "
+                     "jadi Kakak dapat spesifikasi yang sepadan dengan harga lebih ringan.")
     elif selisih > 500000:
-        kal.append(f"Memang ada selisih sekitar {rp(selisih)} dari {ref_nama}, tapi tambahan itu sepadan dengan peningkatan yang Kakak dapat, bukan sekadar beda harga.")
+        kal_a.append(f"Memang ada selisih sekitar {rp(selisih)} dari {ref_nama}, "
+                     "tapi tambahan itu sepadan dengan peningkatan yang Kakak dapat, "
+                     "bukan sekadar beda harga.")
     else:
-        kal.append(f"Harganya di kisaran yang sama dengan {ref_nama}, jadi tidak ada trade-off harga yang perlu dipikirkan.")
+        kal_a.append(f"Harganya di kisaran yang sama dengan {ref_nama}, "
+                     "jadi tidak ada trade-off harga yang perlu dipikirkan.")
 
-    kal.append("Kalau Kakak berkenan, saya bisa tunjukkan unitnya langsung supaya bisa kita bandingkan bareng-bareng.")
-    return " ".join(kal)
+    kal_a.append("Kalau Kakak berkenan, saya bisa tunjukkan unitnya langsung "
+                 "supaya bisa kita bandingkan bareng-bareng.")
+    varian_a = " ".join(kal_a)
+
+    # ============================================
+    # VARIAN B — MANFAAT
+    # ============================================
+    kal_b = [f"Kak, {ref_nama} {kondisi}."]
+
+    if target:
+        target_ringkas = target.split(",")[0].strip().lower()
+        kal_b.append(f"Sebelum saya tawarkan yang lain, boleh saya tahu dulu — "
+                     f"kira-kira HP ini bakal sering dipakai untuk {target_ringkas}, "
+                     "atau ada aktivitas lain yang jadi prioritas Kakak?")
+    else:
+        kal_b.append("Sebelum saya tawarkan yang lain, boleh saya tahu dulu — "
+                     "aktivitas apa yang paling sering Kakak lakukan dengan HP sehari-hari?")
+
+    rekom_b = f"Soalnya, ada satu produk yang saya rasa cocok dengan kebutuhan seperti itu — {alt_nama}"
+    if tier:
+        rekom_b += f", di kelas {tier}"
+    kal_b.append(rekom_b + ".")
+
+    if poin:
+        kal_b.append(f"Yang bikin saya rekomendasiin, "
+                     f"{gabung_teks([kecil(ringkas(p)) for p in poin[:2]])}.")
+
+    if target:
+        target_ringkas2 = target.split(",")[0].strip().lower()
+        kal_b.append(f"Jadi bukan cuma soal spec-nya mirip, "
+                     f"tapi memang dirancang untuk pengguna seperti {target_ringkas2}.")
+
+    if selisih < -500000:
+        kal_b.append(f"Dan kabar baiknya, harganya malah lebih ringan {rp(abs(selisih))} "
+                     f"dari {ref_nama} — jadi Kakak bisa dapat yang lebih cocok "
+                     "dengan budget lebih hemat.")
+    elif selisih > 500000:
+        kal_b.append(f"Selisih harga sekitar {rp(selisih)} dari {ref_nama}, "
+                     "tapi menurut saya worth it karena benefit yang Kakak dapat "
+                     "lebih sesuai kebutuhan.")
+    else:
+        kal_b.append(f"Harganya juga di kisaran yang sama dengan {ref_nama}, "
+                     "jadi tidak perlu mikir soal budget.")
+
+    kal_b.append("Gimana, Kak? Mau saya bantu tunjukkan unitnya langsung "
+                 "supaya Kakak bisa coba dulu?")
+    varian_b = " ".join(kal_b)
+
+    return varian_a, varian_b
 
 
 def tabel_banding(ref, alt):
@@ -840,6 +970,7 @@ WIB = timezone(timedelta(hours=7))
 LOG_HEADER = [
     "Timestamp", "Attempt_ID", "Event", "Produk_Dicari", "Mode",
     "Jumlah_Rekomendasi", "Alternatif_1", "Alternatif_2", "Alternatif_3", "Hasil",
+    "Varian_Dipakai",
 ]
 LOCAL_LOG_FILE = "log_switch_selling.csv"
 TARGET_ATTEMPTS = 200
@@ -861,8 +992,9 @@ def get_log_sheet():
             ws = sh.worksheet("Log")
         except gspread.WorksheetNotFound:
             ws = sh.add_worksheet(title="Log", rows=1000, cols=len(LOG_HEADER))
+        # Auto-migrate header
         if ws.row_values(1) != LOG_HEADER:
-            ws.update(range_name="A1", values=[LOG_HEADER + [""]])
+            ws.update(range_name="A1", values=[LOG_HEADER])
         return ws, None
     except Exception as e:
         return None, str(e)
@@ -888,13 +1020,13 @@ def tulis_log(row):
 def catat_attempt(attempt_id, produk, mode, nama_alt):
     alt = (list(nama_alt) + ["", "", ""])[:3]
     row = [datetime.now(WIB).strftime("%Y-%m-%d %H:%M:%S"), attempt_id, "attempt",
-           produk, mode, len(nama_alt), alt[0], alt[1], alt[2], ""]
+           produk, mode, len(nama_alt), alt[0], alt[1], alt[2], "", ""]
     return tulis_log(row)
 
 
-def catat_outcome(attempt_id, produk, mode, hasil):
+def catat_outcome(attempt_id, produk, mode, hasil, varian=""):
     row = [datetime.now(WIB).strftime("%Y-%m-%d %H:%M:%S"), attempt_id, "outcome",
-           produk, mode, "", "", "", "", hasil]
+           produk, mode, "", "", "", "", hasil, varian]
     return tulis_log(row)
 
 
@@ -923,12 +1055,18 @@ def muat_log_df():
             rows = values[1:]
             n = len(header)
             rows = [(list(r) + [""] * n)[:n] for r in rows]
-            return pd.DataFrame(rows, columns=header)
+            df = pd.DataFrame(rows, columns=header)
+            if "Varian_Dipakai" not in df.columns:
+                df["Varian_Dipakai"] = ""
+            return df
         except Exception:
             pass
     if os.path.exists(LOCAL_LOG_FILE):
         try:
-            return pd.read_csv(LOCAL_LOG_FILE, dtype=str)
+            df = pd.read_csv(LOCAL_LOG_FILE, dtype=str)
+            if "Varian_Dipakai" not in df.columns:
+                df["Varian_Dipakai"] = ""
+            return df
         except Exception:
             pass
     return pd.DataFrame(columns=LOG_HEADER)
@@ -961,7 +1099,7 @@ def buat_pdf_report(df_log, filter_store=None):
         if len(t) > 0:
             top_produk = str(t.index[0])
 
-    # ===== Periode: filter timestamp valid (tahun >= 2020) =====
+    # Periode: filter timestamp valid
     periode = None
     if "Timestamp" in attempts.columns and total_attempts > 0:
         ts = pd.to_datetime(attempts["Timestamp"], errors="coerce").dropna()
@@ -971,7 +1109,6 @@ def buat_pdf_report(df_log, filter_store=None):
             akhir = ts.max().strftime("%d %b %Y")
             periode = f"{awal} - {akhir}" if awal != akhir else awal
 
-    # Fallback: bulan sekarang (realtime) kalau tidak ada timestamp valid
     if not periode:
         bulan_id = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
                     "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
@@ -1000,7 +1137,6 @@ def buat_pdf_report(df_log, filter_store=None):
     pdf.set_x(15)
     pdf.cell(0, 6, "Switch-Selling Pilot Report", ln=1)
 
-    # Periode kanan atas
     pdf.set_text_color(142, 216, 255)
     pdf.set_font("Helvetica", "B", 7)
     pdf.set_xy(140, 14)
@@ -1010,7 +1146,6 @@ def buat_pdf_report(df_log, filter_store=None):
     pdf.set_xy(140, 18)
     pdf.cell(55, 5, periode, align="R", ln=1)
 
-    # Store kanan bawah header
     store_label = "Digiplus Seluruh Indonesia"
     if filter_store and filter_store not in ("Semua Store", "Digiplus Seluruh Indonesia"):
         store_label = filter_store
@@ -1176,7 +1311,6 @@ def buat_pdf_report(df_log, filter_store=None):
             pdf.set_xy(160, row_y + 1.5)
             pdf.cell(30, 4, str(count), align="R", ln=0)
 
-    # ===== Footer: pastikan kedua baris di halaman yang sama =====
     waktu_export = datetime.now(WIB).strftime("%d %b %Y, %H:%M WIB")
 
     if pdf.get_y() > 260:
@@ -1226,571 +1360,4 @@ def susun_data(sheets_dict):
     if not df_kompetitor.empty:
         df_kompetitor = df_kompetitor.dropna(subset=["Brand", "Model"])
         df_kompetitor["Harga"] = pd.to_numeric(df_kompetitor["Harga"], errors="coerce")
-    return df_toko, df_kompetitor
-
-
-@st.cache_resource
-def get_data_book():
-    try:
-        import gspread
-        from google.oauth2.service_account import Credentials
-        creds = Credentials.from_service_account_info(
-            dict(st.secrets["gcp_service_account"]),
-            scopes=["https://www.googleapis.com/auth/spreadsheets",
-                    "https://www.googleapis.com/auth/drive"],
-        )
-        gc = gspread.authorize(creds)
-        sid = st.secrets["gsheets"].get("data_spreadsheet_id") or st.secrets["gsheets"]["spreadsheet_id"]
-        return gc.open_by_key(sid), None
-    except Exception as e:
-        return None, str(e)
-
-
-@st.cache_data(ttl=300)
-def load_data():
-    catatan = None
-    book, err = get_data_book()
-    if book is not None:
-        try:
-            sheets = {ws.title: baca_worksheet(ws) for ws in book.worksheets()}
-            df_toko, df_komp = susun_data(sheets)
-            return df_toko, df_komp, "Google Sheets", None
-        except ValueError:
-            catatan = "Google Sheets belum berisi data produk. Sementara memakai data_hp.xlsx."
-        except Exception as e:
-            catatan = f"Gagal membaca Google Sheets ({e}). Sementara memakai data_hp.xlsx."
-    sheets_dict = pd.read_excel("data_hp.xlsx", sheet_name=None)
-    df_toko, df_komp = susun_data(sheets_dict)
-    return df_toko, df_komp, "Excel (data_hp.xlsx)", catatan
-
-
-try:
-    df_toko, df_kompetitor, sumber_data, catatan_data = load_data()
-except FileNotFoundError:
-    st.error("⚠️ Data produk tidak ditemukan.")
-    st.stop()
-except Exception as e:
-    st.error(f"⚠️ Error baca data: {e}")
-    st.stop()
-
-df_toko["Nama_Lengkap"] = df_toko.apply(gabung_nama, axis=1)
-if not df_kompetitor.empty:
-    df_kompetitor["Nama_Lengkap"] = df_kompetitor.apply(gabung_nama, axis=1)
-
-pilihan_toko = df_toko["Nama_Lengkap"].unique().tolist()
-pilihan_kompetitor = (
-    df_kompetitor["Nama_Lengkap"].unique().tolist() if not df_kompetitor.empty else []
-)
-pilihan_unik = sorted(set(pilihan_toko + pilihan_kompetitor), key=lambda x: x.lower())
-
-
-# ============================================
-# UI HELPERS
-# ============================================
-def esc(x):
-    return html.escape(str(x))
-
-
-def render_header():
-    st.markdown(
-        '<div class="dp-head">'
-        '<div class="dp-title">Digiplus Smart Sales Assistant</div>'
-        '<div class="dp-sub">Produk kosong?<br>'
-        '<span class="dp-sub-part2">Jangan Khawatir Kita Masih Bisa Jual Yang Lain!</span>'
-        '</div>'
-        '</div>'
-        '<div class="dp-sep"></div>',
-        unsafe_allow_html=True,
-    )
-
-
-def render_alternatif(ref, h, mode, gugur=None):
-    row = h["row"]
-    nama = row["Nama_Lengkap"]
-    sel = h["selisih"]
-    tanda = "+" if sel > 0 else ""
-
-    st.markdown(
-        f'<div class="dp-alt">🎯 Alternatif: {esc(nama)}</div>'
-        f'<div class="dp-meta">💰 Harga: <b>{esc(rp(row["Harga"]))}</b> '
-        f'({tanda}{esc(rp(sel))} dari {esc(ref["Nama_Lengkap"])})'
-        f' &nbsp;|&nbsp; 🎯 Skor Kecocokan: <b>{h["skor"]}/100</b></div>',
-        unsafe_allow_html=True,
-    )
-
-    alasan_plus = [t for ik, t in h["alasan"] if ik == "✅"]
-    if alasan_plus:
-        st.markdown(
-            f'<div class="dp-why">💡 <b>Kenapa direkomendasikan:</b> '
-            f'{" · ".join(esc(t) for t in alasan_plus[:3])}</div>',
-            unsafe_allow_html=True,
-        )
-
-    kiri, kanan = st.columns(2, gap="medium")
-    poin = [clean(row.get(f"Kelebihan_{i}")) for i in (1, 2, 3)]
-    isi = "".join(
-        f'<div class="dp-pt"><span>✅</span><span>{esc(p)}</span></div>' for p in poin if p
-    ) or '<div class="dp-pt">Data kelebihan produk belum diisi.</div>'
-
-    with kiri:
-        st.markdown(
-            f'<div class="dp-glass"><div class="dp-ch">📊 Kelebihan {esc(nama)}</div>{isi}</div>',
-            unsafe_allow_html=True,
-        )
-    with kanan:
-        script = buat_script(ref["Nama_Lengkap"], row, mode, sel, h)
-        st.markdown(
-            f'<div class="dp-glass dp-probe">'
-            f'<div class="dp-ch">💬 Ide Probing</div>'
-            f'<div class="dp-script">{esc(script)}</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
-
-    if any("belum lengkap" in t for _, t in h["alasan"]):
-        st.caption("Catatan: skor berdasarkan data terbatas (tier atau chipset belum lengkap).")
-
-
-def render_outcome(attempt_id, produk, mode):
-    st.markdown('<div class="dp-sep"></div>', unsafe_allow_html=True)
-    sudah = st.session_state.get(f"outcome_{attempt_id}")
-    if sudah:
-        st.markdown(
-            f'<div class="dp-done">✅ Hasil tercatat: <b>{esc(sudah)}</b></div>',
-            unsafe_allow_html=True,
-        )
-        return
-
-    st.markdown(
-        '<div class="dp-ask">'
-        '<div class="dp-ask-title">📝 Hasil percakapan dengan customer</div>'
-        '<div class="dp-ask-sub">Tolong isi hasilnya untuk perbaikan kami ke depannya 🙏</div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    c1, c2, c3 = st.columns(3)
-    pilihan = None
-    if c1.button("🤔 Tertarik, tapi masih ragu", key="o1", use_container_width=True):
-        pilihan = "Tertarik namun masih ragu"
-    if c2.button("🎉 Berhasil menjual", key="o2", use_container_width=True):
-        pilihan = "Berhasil menjual"
-    if c3.button("😔 Belum berhasil", key="o3", use_container_width=True):
-        pilihan = "Belum berhasil"
-
-    if pilihan:
-        catat_outcome(attempt_id, produk, mode, pilihan)
-        st.session_state[f"outcome_{attempt_id}"] = pilihan
-        st.rerun()
-
-
-def render_pilot():
-    total = hitung_total_attempt()
-    pct = min(100, total / TARGET_ATTEMPTS * 100)
-    st.markdown(
-        f'<div class="dp-pilot">'
-        f'<div class="dp-pl">SWITCH-SELLING PILOT</div>'
-        f'<div class="dp-pn2">{total} <span>/ {TARGET_ATTEMPTS} ATTEMPTS</span></div>'
-        f'<div class="dp-bar"><div style="width:{pct:.0f}%"></div></div>'
-        f'</div>',
-        unsafe_allow_html=True,
-    )
-
-
-# ============================================
-# ANALYTICS DASHBOARD
-# ============================================
-def _style_chart(chart):
-    return chart.configure_view(strokeWidth=0).configure_axis(
-        grid=False, domain=False,
-    ).configure(background="transparent")
-
-
-def render_analytics():
-    st.markdown(
-        '<div class="dp-an-h2">📊 Analytics Dashboard</div>'
-        '<div class="dp-an-it">Ringkasan performa pilot switch-selling Digiplus</div>',
-        unsafe_allow_html=True,
-    )
-
-    df_log = muat_log_df()
-
-    if df_log.empty or "Event" not in df_log.columns:
-        st.markdown(
-            '<div class="dp-an-empty">📭 Belum ada data pilot.<br>'
-            'Lakukan beberapa pencarian di tab <b>Sales Assistant</b> dulu.</div>',
-            unsafe_allow_html=True,
-        )
-        return
-
-    attempts = df_log[df_log["Event"].astype(str) == "attempt"].copy()
-    outcomes = df_log[df_log["Event"].astype(str) == "outcome"].copy()
-
-    total_attempts = len(attempts)
-    total_outcomes = len(outcomes)
-
-    berhasil_set = {"Berhasil menjual", "Switch berhasil"}
-    berhasil = outcomes[outcomes["Hasil"].astype(str).isin(berhasil_set)]
-    switch_rate = (len(berhasil) / total_outcomes * 100) if total_outcomes > 0 else 0.0
-
-    if "Produk_Dicari" in attempts.columns and total_attempts > 0:
-        top_list = attempts["Produk_Dicari"].value_counts()
-        top_produk = top_list.index[0] if len(top_list) > 0 else "—"
-        produk_unik = attempts["Produk_Dicari"].nunique()
-    else:
-        top_produk = "—"
-        produk_unik = 0
-
-    st.markdown(
-        f'<div class="dp-kpi-row">'
-        f'<div class="dp-kpi">'
-        f'<div class="dp-kpi-label">Total Attempts</div>'
-        f'<div class="dp-kpi-value blue">{total_attempts}</div>'
-        f'<div class="dp-kpi-sub">dari target {TARGET_ATTEMPTS}</div>'
-        f'</div>'
-        f'<div class="dp-kpi">'
-        f'<div class="dp-kpi-label">Switch Rate</div>'
-        f'<div class="dp-kpi-value green">{switch_rate:.0f}%</div>'
-        f'<div class="dp-kpi-sub">{len(berhasil)} berhasil dari {total_outcomes} outcome</div>'
-        f'</div>'
-        f'<div class="dp-kpi">'
-        f'<div class="dp-kpi-label">Produk Unik Dicari</div>'
-        f'<div class="dp-kpi-value">{produk_unik}</div>'
-        f'<div class="dp-kpi-sub">variasi customer request</div>'
-        f'</div>'
-        f'<div class="dp-kpi">'
-        f'<div class="dp-kpi-label">Top Produk</div>'
-        f'<div class="dp-kpi-value" style="font-size:1.05rem;line-height:1.3;margin-top:.55rem">'
-        f'{esc(top_produk)}</div>'
-        f'<div class="dp-kpi-sub">paling sering dicari</div>'
-        f'</div>'
-        f'</div>',
-        unsafe_allow_html=True,
-    )
-
-    c1, c2 = st.columns(2, gap="medium")
-
-    with c1:
-        st.markdown('<div class="dp-an-section">📈 Attempts per Hari</div>', unsafe_allow_html=True)
-        try:
-            att = attempts.copy()
-            att["Tanggal"] = pd.to_datetime(att["Timestamp"], errors="coerce").dt.date
-            daily = att.dropna(subset=["Tanggal"]).groupby("Tanggal").size().reset_index(name="Jumlah")
-            if not daily.empty:
-                chart = alt.Chart(daily).mark_line(
-                    color="#4DA6FF", strokeWidth=2.5,
-                    point=alt.OverlayMarkDef(color="#8FE9FF", size=60, filled=True, strokeWidth=0),
-                ).encode(
-                    x=alt.X("Tanggal:T", title=None, axis=alt.Axis(
-                        format="%d %b", labelColor="#A9B6CB", grid=False,
-                        domain=False, tickColor="rgba(255,255,255,0.1)",
-                        labelFontSize=10)),
-                    y=alt.Y("Jumlah:Q", title=None, axis=alt.Axis(
-                        labelColor="#A9B6CB", grid=False, domain=False,
-                        tickColor="rgba(255,255,255,0.1)", labelFontSize=10)),
-                ).properties(height=240)
-                st.altair_chart(_style_chart(chart), use_container_width=True)
-            else:
-                st.caption("Belum ada data timestamp.")
-        except Exception:
-            st.caption("Belum ada data timestamp.")
-
-    with c2:
-        st.markdown('<div class="dp-an-section">🎯 Top 5 Alternatif Direkomendasikan</div>', unsafe_allow_html=True)
-        alt_cols = [c for c in ["Alternatif_1", "Alternatif_2", "Alternatif_3"] if c in attempts.columns]
-        all_alt = []
-        for col in alt_cols:
-            all_alt.extend([str(a).strip() for a in attempts[col].dropna().tolist()
-                            if a and str(a).strip()])
-        if all_alt:
-            top_alt = pd.Series(all_alt).value_counts().head(5).reset_index()
-            top_alt.columns = ["Alternatif", "Jumlah"]
-            chart = alt.Chart(top_alt).mark_bar(
-                color="#8FE9FF", cornerRadiusEnd=6,
-            ).encode(
-                y=alt.Y("Alternatif:N", sort="-x", title=None, axis=alt.Axis(
-                    labelColor="#E8EEF8", grid=False, domain=False,
-                    tickColor="rgba(255,255,255,0.1)",
-                    labelFontSize=10, labelLimit=140)),
-                x=alt.X("Jumlah:Q", title=None, axis=alt.Axis(
-                    labelColor="#A9B6CB", grid=False, domain=False,
-                    tickColor="rgba(255,255,255,0.1)", labelFontSize=10,
-                    tickMinStep=1)),
-            ).properties(height=240)
-            st.altair_chart(_style_chart(chart), use_container_width=True)
-        else:
-            st.caption("Belum ada data alternatif.")
-
-    c3, c4 = st.columns(2, gap="medium")
-
-    with c3:
-        st.markdown('<div class="dp-an-section">🥧 Distribusi Outcome</div>', unsafe_allow_html=True)
-        if not outcomes.empty and "Hasil" in outcomes.columns:
-            oc = outcomes["Hasil"].astype(str).value_counts().reset_index()
-            oc.columns = ["Hasil", "Jumlah"]
-            if not oc.empty:
-                color_map = {
-                    "Berhasil menjual": "#4ADE80",
-                    "Switch berhasil": "#22C55E",
-                    "Tertarik namun masih ragu": "#F5B84B",
-                    "Tertarik lihat alternatif": "#8FE9FF",
-                    "Belum berhasil": "#E31E24",
-                    "Tidak jadi": "#B91C1C",
-                }
-                chart = alt.Chart(oc).mark_arc(
-                    innerRadius=55, outerRadius=95,
-                    stroke="#0A1424", strokeWidth=2,
-                ).encode(
-                    theta=alt.Theta("Jumlah:Q"),
-                    color=alt.Color("Hasil:N",
-                        scale=alt.Scale(
-                            domain=list(color_map.keys()),
-                            range=list(color_map.values()),
-                        ),
-                        legend=None),
-                    tooltip=["Hasil", "Jumlah"],
-                ).properties(height=240)
-                st.altair_chart(_style_chart(chart), use_container_width=True)
-
-                legend_html = '<div class="dp-legend">'
-                for _, row in oc.iterrows():
-                    name = str(row["Hasil"])
-                    count = int(row["Jumlah"])
-                    color = color_map.get(name, "#8ED8FF")
-                    legend_html += (
-                        f'<div class="dp-legend-item">'
-                        f'<span class="dp-legend-dot" style="background:{color}; '
-                        f'box-shadow: 0 0 8px {color}80;"></span>'
-                        f'<span>{esc(name)}</span>'
-                        f'<span class="dp-legend-count">{count}</span>'
-                        f'</div>'
-                    )
-                legend_html += '</div>'
-                st.markdown(legend_html, unsafe_allow_html=True)
-            else:
-                st.caption("Belum ada outcome yang tercatat.")
-        else:
-            st.caption("Belum ada outcome yang tercatat.")
-
-    with c4:
-        st.markdown('<div class="dp-an-section">🔥 Top 10 Produk Paling Dicari</div>', unsafe_allow_html=True)
-        if "Produk_Dicari" in attempts.columns and total_attempts > 0:
-            tp = attempts["Produk_Dicari"].value_counts().head(10).reset_index()
-            tp.columns = ["Produk", "Jumlah"]
-            if not tp.empty:
-                chart = alt.Chart(tp).mark_bar(
-                    color="#4DA6FF", cornerRadiusEnd=6,
-                ).encode(
-                    y=alt.Y("Produk:N", sort="-x", title=None, axis=alt.Axis(
-                        labelColor="#E8EEF8", grid=False, domain=False,
-                        tickColor="rgba(255,255,255,0.1)",
-                        labelFontSize=10, labelLimit=140)),
-                    x=alt.X("Jumlah:Q", title=None, axis=alt.Axis(
-                        labelColor="#A9B6CB", grid=False, domain=False,
-                        tickColor="rgba(255,255,255,0.1)", labelFontSize=10,
-                        tickMinStep=1)),
-                ).properties(height=280)
-                st.altair_chart(_style_chart(chart), use_container_width=True)
-        else:
-            st.caption("Belum ada data produk dicari.")
-
-    # PDF Export section
-    st.markdown(
-        '<div class="dp-pdf-block">'
-        '<div class="dp-pdf-title">📄 Export PDF Report</div>'
-        '<div class="dp-pdf-sub">Laporan ringkasan pilot dalam format PDF satu halaman. '
-        'Dokumen ini memuat metrik utama, distribusi outcome, '
-        'dan daftar produk terpopuler untuk keperluan dokumentasi dan pelaporan.</div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    try:
-        pdf_bytes, pdf_err = buat_pdf_report(df_log, filter_store=None)
-        if pdf_err:
-            st.caption(f"⚠️ PDF belum bisa dibuat: {pdf_err}")
-        elif pdf_bytes:
-            nama_file = f"SSA_Pilot_Report_{datetime.now(WIB).strftime('%Y%m%d_%H%M')}.pdf"
-            st.download_button(
-                label="⬇️  Download PDF Report",
-                data=pdf_bytes,
-                file_name=nama_file,
-                mime="application/pdf",
-                use_container_width=True,
-                key="pdf_download_btn",
-            )
-    except Exception as e:
-        print("PDF error:", repr(e))
-        st.caption("⚠️ PDF report belum bisa dibuat saat ini.")
-
-
-# ============================================
-# SIDEBAR
-# ============================================
-with st.sidebar:
-    st.caption(f"Sumber data produk: {sumber_data}")
-    if catatan_data:
-        st.warning(catatan_data)
-    if get_log_sheet()[0] is None:
-        st.caption("Google Sheets belum terhubung. Log disimpan sementara di file lokal.")
-    if st.button("Refresh data"):
-        st.cache_data.clear()
-        st.rerun()
-
-
-# ============================================
-# HEADER + MAIN NAV
-# ============================================
-render_header()
-
-tab_sa, tab_an = st.tabs(["🎯 Sales Assistant", "📊 Analytics Dashboard"])
-
-
-# ============================================
-# TAB 1: SALES ASSISTANT
-# ============================================
-with tab_sa:
-    st.markdown(
-        '<div class="dp-h2">🔎 HP apa yang sedang kosong?</div>'
-        '<div class="dp-it">Biar aku bantu cariin penggantinya lengkap dengan cara jualan 😊</div>',
-        unsafe_allow_html=True,
-    )
-
-    def search_hp(searchterm: str):
-        """Multi-term AND search. Ketik 'samsung s25' → match 'Samsung Galaxy S25'.
-        Hasil urut alphabet A-Z. Limit 80 untuk performa di mobile."""
-        try:
-            s = (searchterm or "").strip().lower()
-            if not s:
-                return pilihan_unik[:80]
-            terms = [t for t in s.split() if t]
-            if not terms:
-                return pilihan_unik[:80]
-            hasil = [hp for hp in pilihan_unik if all(t in hp.lower() for t in terms)]
-            return hasil[:80]
-        except Exception:
-            return pilihan_unik[:80]
-
-    pilihan_customer = st_searchbox(
-        search_hp,
-        label="🔎 Cari HP yang sedang kosong:",
-        placeholder="Ketik atau pilih nama HP...",
-        key="search_hp",
-        default_options=pilihan_unik[:80],
-    )
-
-    TOP_N = 4
-    TOL_RP = 2500000
-
-    if pilihan_customer:
-        try:
-            if pilihan_customer in pilihan_toko:
-                mode = "toko"
-                ref = df_toko[df_toko["Nama_Lengkap"] == pilihan_customer].iloc[0]
-            elif pilihan_customer in pilihan_kompetitor:
-                mode = "kompetitor"
-                ref = df_kompetitor[df_kompetitor["Nama_Lengkap"] == pilihan_customer].iloc[0]
-            else:
-                st.error("Produk tidak ditemukan di database.")
-                st.stop()
-
-            if pd.isna(pd.to_numeric(ref["Harga"], errors="coerce")):
-                st.error("Harga produk ini belum diisi, sehingga alternatif belum bisa dicari.")
-                st.stop()
-
-            harga_ref = float(ref["Harga"])
-            tol = max(float(TOL_RP), 0.15 * harga_ref) if mode == "toko" else 0.3 * harga_ref
-            hasil = cari_alternatif(ref, df_toko, mode, tol, TOP_N)
-
-            if st.session_state.get("last_logged_product") != pilihan_customer:
-                st.session_state["attempt_id"] = uuid.uuid4().hex[:8]
-                st.session_state["last_logged_product"] = pilihan_customer
-                catat_attempt(
-                    st.session_state["attempt_id"], pilihan_customer, mode,
-                    [h["row"]["Nama_Lengkap"] for h in hasil],
-                )
-                hitung_total_attempt.clear()
-                muat_log_df.clear()
-
-            if not hasil:
-                st.info("Belum ada alternatif dalam rentang harga ini.")
-            else:
-                target_override = OVERRIDE_TOP.get(pilihan_customer)
-                if target_override:
-                    for i, h in enumerate(hasil):
-                        if h["row"]["Nama_Lengkap"] == target_override and i > 0:
-                            hasil.insert(0, hasil.pop(i))
-                            break
-
-                ss_key = f"selected_alt_{pilihan_customer}"
-                radio_key = f"radio_{pilihan_customer}"
-
-                if radio_key in st.session_state:
-                    label_dipilih = st.session_state[radio_key]
-                    for i, h in enumerate(hasil):
-                        if f"📱 {h['row']['Nama_Lengkap']}" == label_dipilih:
-                            st.session_state[ss_key] = i
-                            break
-
-                if ss_key not in st.session_state:
-                    st.session_state[ss_key] = 0
-
-                idx = min(st.session_state.get(ss_key, 0), len(hasil) - 1)
-                if idx < 0:
-                    idx = 0
-                st.session_state[ss_key] = idx
-                h_selected = hasil[idx]
-
-                ket = "sedang kosong di Digiplus" if mode == "toko" else "tidak dijual di Digiplus"
-                st.markdown(
-                    f'<div class="dp-reco">'
-                    f'<div class="dp-rl">🎯 REKOMENDASI SWITCH SELLING</div>'
-                    f'<div class="dp-rt">Segera alihkan ke {esc(h_selected["row"]["Nama_Lengkap"])}!</div>'
-                    f'<div class="dp-rs">{esc(pilihan_customer)} {ket}.</div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-
-                st.markdown(
-                    f'<div class="dp-ref">'
-                    f'<div><div class="dp-rk">Harga Acuan</div>'
-                    f'<div class="dp-rv">{esc(rp(harga_ref))}</div></div>'
-                    f'<div><div class="dp-rk">Tier</div>'
-                    f'<div class="dp-rv">{esc(clean(ref.get("Tier")) or "-")}</div></div>'
-                    f'<div><div class="dp-rk">Brand</div>'
-                    f'<div class="dp-rv">{esc(clean(ref.get("Brand")) or "-")}</div></div>'
-                    f'</div>'
-                    '<div class="dp-sep"></div>',
-                    unsafe_allow_html=True,
-                )
-
-                labels = [f"📱 {h['row']['Nama_Lengkap']}" for h in hasil]
-                st.radio(
-                    "Pilih alternatif",
-                    labels,
-                    index=idx,
-                    horizontal=True,
-                    key=radio_key,
-                    label_visibility="collapsed",
-                )
-
-                hasil_ids = [hh["row"]["Nama_Lengkap"] for hh in hasil]
-                gugur = cari_gugur(ref, df_toko, mode, tol, hasil_ids, top_n=5)
-
-                render_alternatif(ref, h_selected, mode, gugur)
-                render_outcome(st.session_state.get("attempt_id"), pilihan_customer, mode)
-        except Exception as e:
-            print("UI error:", repr(e))
-            st.error("Terjadi kendala. Coba refresh data atau pilih produk lain.")
-    else:
-        st.session_state.pop("last_logged_product", None)
-        st.info("👆 Ketik atau pilih nama HP di kolom pencarian untuk mulai.")
-
-    render_pilot()
-
-
-# ============================================
-# TAB 2: ANALYTICS DASHBOARD
-# ============================================
-with tab_an:
-    render_analytics()
+    return df_toko, df_kompet
