@@ -1285,6 +1285,29 @@ pilihan_unik = sorted(set(pilihan_toko + pilihan_kompetitor), key=lambda x: x.lo
 
 
 # ============================================
+# MAPPING INFO HP UNTUK SEARCHBOX (Tier + Harga)
+# ============================================
+info_hp = {}
+for _, row in df_toko.iterrows():
+    info_hp[row["Nama_Lengkap"]] = {
+        "Tier": clean(row.get("Tier")) or "Unknown",
+        "Harga": rp(row.get("Harga")) if pd.notna(row.get("Harga")) else "-",
+    }
+if not df_kompetitor.empty:
+    for _, row in df_kompetitor.iterrows():
+        info_hp[row["Nama_Lengkap"]] = {
+            "Tier": clean(row.get("Tier")) or "Unknown",
+            "Harga": rp(row.get("Harga")) if pd.notna(row.get("Harga")) else "-",
+        }
+
+
+def format_hp_option(hp_name):
+    """Format nama HP, Tier, dan Harga menjadi satu string untuk dropdown."""
+    info = info_hp.get(hp_name, {"Tier": "-", "Harga": "-"})
+    return f"{hp_name}  |  {info['Tier']}  |  {info['Harga']}"
+
+
+# ============================================
 # UI HELPERS
 # ============================================
 def esc(x):
@@ -1658,31 +1681,35 @@ with tab_sa:
 
     def search_hp(searchterm: str):
         """Multi-term AND search. Ketik 'samsung s25' → match 'Samsung Galaxy S25'.
-        Hasil urut alphabet A-Z. Limit 80 untuk performa di mobile."""
+        Hasil urut alphabet A-Z. Limit 80 untuk performa di mobile.
+        Setiap opsi menampilkan 'Nama HP | Tier | Harga'."""
         try:
             s = (searchterm or "").strip().lower()
             if not s:
-                return pilihan_unik[:80]
+                return [format_hp_option(hp) for hp in pilihan_unik[:80]]
             terms = [t for t in s.split() if t]
             if not terms:
-                return pilihan_unik[:80]
+                return [format_hp_option(hp) for hp in pilihan_unik[:80]]
             hasil = [hp for hp in pilihan_unik if all(t in hp.lower() for t in terms)]
-            return hasil[:80]
+            return [format_hp_option(hp) for hp in hasil[:80]]
         except Exception:
-            return pilihan_unik[:80]
+            return [format_hp_option(hp) for hp in pilihan_unik[:80]]
 
-    pilihan_customer = st_searchbox(
+    pilihan_customer_raw = st_searchbox(
         search_hp,
         label="🔎 Cari HP yang sedang kosong:",
         placeholder="Ketik atau pilih nama HP...",
         key="search_hp",
-        default_options=pilihan_unik[:80],
+        default_options=[format_hp_option(hp) for hp in pilihan_unik[:80]],
     )
 
     TOP_N = 4
     TOL_RP = 2500000
 
-    if pilihan_customer:
+    if pilihan_customer_raw:
+        # Ekstrak nama asli HP dari string gabungan "Nama | Tier | Harga"
+        pilihan_customer = pilihan_customer_raw.split("  |  ")[0].strip()
+
         try:
             if pilihan_customer in pilihan_toko:
                 mode = "toko"
